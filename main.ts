@@ -1,4 +1,4 @@
-import { generateText, Output } from "ai";
+import { generateText, type ToolContent } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
 import { execSync } from "child_process";
@@ -23,77 +23,92 @@ function askQuestion(prompt: string): Promise<string> {
   });
 }
 
-const bashCommandSchema = z.object({
-  command: z.string(),
-  example: z.string().optional(),
-});
+type Message =
+  | {
+      role: "user";
+      content: string;
+    }
+  | {
+      role: "assistant";
+      content: string;
+    }
+  | {
+      role: "tool";
+      content: ToolContent;
+    };
 
-async function executeBashCommand(_prompt: string) {
-  let result;
-  let prompt;
-  try {
-    prompt = `Convert this natural language request to a bash command. Return ONLY the command in raw JSON format with "command" key:
-${_prompt}`;
-    result = await generateText({
-      model,
-      prompt,
-      output: Output.object({
-        schema: bashCommandSchema,
-      }),
-    });
-  } catch (error) {
-    let errorMessage = "";
-    
-    if (error && typeof error === "object" && "cause" in error) {
-      const cause = error as { cause?: Error };
-      if (cause.cause) {
-        errorMessage = cause.cause.message;
+const messages: Message[] = [];
+
+async function runLoop(prompt: string) {
+  messages.push({
+    role: "user",
+    content: prompt,
+  });
+
+  const res = await generateText({
+    model,
+    messages,
+    tools: {
+      bash: {
+        description: "Execute a bash command and return its output",
+        inputSchema: z.object({
+          command: z.string().describe("The bash command to execute"),
+        }),
+        execute: async ({ command }: { command: string }) => {
+          console.log(`Executing command: ${command}`);
+          try {
+            const result = execSync(command, {
+              encoding: "utf-8",
+              stdio: "pipe",
+            });
+            return {
+              success: true,
+              output: result,
+            };
+          } catch (error: any) {
+            return {
+              success: false,
+              error: error.message,
+              stderr: error.stderr?.toString() || "",
+            };
+          }
+        },
+      },
+    },
+  });
+
+  // Display the assistant's response
+  if (res.text) {
+    console.log("\nAssistant:", res.text);
+  }
+
+  // Display tool calls if any
+  if (res.toolCalls && res.toolCalls.length > 0) {
+    console.log("\nTool calls:", JSON.stringify(res.toolCalls, null, 2));
+  }
+
+  // Display tool results if any
+  if (res.toolResults && res.toolResults.length > 0) {
+    for (const toolResult of res.toolResults) {
+      const output = (toolResult as any).output;
+      if (output && output.success) {
+        console.log(output.output);
+      } else if (output) {
+        console.error(output.stderr || output.error);
       }
     }
-    
-    if (!errorMessage && error && typeof error === "object" && "message" in error) {
-      errorMessage = (error as { message: string }).message;
-    }
-
-    console.log("------error");
-    prompt =
-      prompt +
-      "\n\nError: " +
-      errorMessage +
-      "\n\nPlease fix the output payload according to error message and return the correct output.";
-
-    console.log("------prompt", prompt);
-    
-    // Retry with fixed prompt
-    try {
-      result = await generateText({
-        model,
-        prompt,
-        output: Output.object({
-          schema: bashCommandSchema,
-        }),
-      });
-    } catch (retryError) {
-      console.error("Failed to generate valid output after retry:", retryError);
-      return;
-    }
   }
 
-  console.log("Result:", result);
-  const command = result.output.command.trim();
-  console.log(`Executing: ${command}`);
-
-  try {
-    const result = execSync(command, { encoding: "utf-8", stdio: "pipe" });
-    console.log("Output:", result);
-  } catch (error) {
-    console.error("Error executing command:", error);
-  }
+  // Add assistant message to history
+  messages.push({
+    role: "assistant",
+    content: res.text || "",
+  });
 }
 
 async function main() {
   while (true) {
-    const userPrompt = await askQuestion("\nWhat would you like to do? ");
+    const userPrompt = await askQuestion("\nPrompt: ");
 
     if (
       userPrompt.toLowerCase() === "exit" ||
@@ -103,7 +118,8 @@ async function main() {
       break;
     }
 
-    await executeBashCommand(userPrompt);
+    await runLoop(userPrompt);
+    // console.log("--------messages:", messages);
   }
 }
 
