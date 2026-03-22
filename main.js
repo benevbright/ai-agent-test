@@ -1,13 +1,53 @@
-import { generateText } from "ai";
-import { openai } from "@ai-sdk/openai";
+import { generateText, Output } from "ai";
+import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
+import { execSync } from "child_process";
+import * as readline from "readline";
+import { z } from "zod";
 dotenv.config();
-const model = openai("qwen3-coder-next", {
-    baseURL: "http://localhost:11434/v1",
+const model = createOpenAI({
+    baseURL: "http://localhost:8090/v1",
+    apiKey: "dummy",
+})("qwen3-coder-next");
+const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
 });
-const { text } = await generateText({
-    model,
-    prompt: "Write a haiku about the changing seasons.",
-});
-console.log(text);
+function askQuestion(prompt) {
+    return new Promise((resolve) => {
+        rl.question(prompt, (answer) => resolve(answer));
+    });
+}
+async function executeBashCommand(prompt) {
+    const result = await generateText({
+        model,
+        prompt: `Convert this natural language request to a bash command. Return ONLY the command in JSON format with "command" key:
+
+${prompt}`,
+        output: Output.object({
+            schema: z.object({ command: z.string() }),
+        }),
+    });
+    console.log("Result:", result);
+    const command = result.output.command.trim();
+    console.log(`Executing: ${command}`);
+    try {
+        const result = execSync(command, { encoding: "utf-8", stdio: "pipe" });
+        console.log("Output:", result);
+    }
+    catch (error) {
+        console.error("Error executing command:", error);
+    }
+}
+async function main() {
+    while (true) {
+        const userPrompt = await askQuestion("\nWhat would you like to do? ");
+        if (userPrompt.toLowerCase() === "exit" || userPrompt.toLowerCase() === "quit") {
+            rl.close();
+            break;
+        }
+        await executeBashCommand(userPrompt);
+    }
+}
+main();
 //# sourceMappingURL=main.js.map

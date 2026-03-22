@@ -1,8 +1,9 @@
-import { generateText } from "ai";
+import { generateText, Output } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
 import { execSync } from "child_process";
 import * as readline from "readline";
+import { z } from "zod";
 
 dotenv.config();
 
@@ -18,19 +19,23 @@ const rl = readline.createInterface({
 
 function askQuestion(prompt: string): Promise<string> {
   return new Promise((resolve) => {
-    rl.question(prompt, (answer) => resolve(answer));
+    rl.question(prompt, (answer: string) => resolve(answer));
   });
 }
 
 async function executeBashCommand(prompt: string) {
-  const { text } = await generateText({
+  const result = await generateText({
     model,
-    prompt: `Convert this natural language request to a bash command. Return ONLY the command, nothing else:
+    prompt: `Convert this natural language request to a bash command. Return ONLY the command in raw JSON format with "command" key (no markdown, no extra text):
 
 ${prompt}`,
+    output: Output.object({
+      schema: z.object({ command: z.string() }),
+    }),
   });
 
-  const command = text.trim();
+  console.log("Result:", result);
+  const command = result.output.command.trim();
   console.log(`Executing: ${command}`);
 
   try {
