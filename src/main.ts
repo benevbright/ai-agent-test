@@ -1,9 +1,8 @@
 import { generateText, type ToolContent } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
-import { execSync } from "child_process";
 import * as readline from "readline";
-import { z } from "zod";
+import { tools } from "./tools.js";
 
 dotenv.config();
 
@@ -48,33 +47,7 @@ async function runLoop(prompt: string) {
   const res = await generateText({
     model,
     messages,
-    tools: {
-      bash: {
-        description: "Execute a bash command and return its output",
-        inputSchema: z.object({
-          command: z.string().describe("The bash command to execute"),
-        }),
-        execute: async ({ command }: { command: string }) => {
-          console.log(`Executing command: ${command}`);
-          try {
-            const result = execSync(command, {
-              encoding: "utf-8",
-              stdio: "pipe",
-            });
-            return {
-              success: true,
-              output: result,
-            };
-          } catch (error: any) {
-            return {
-              success: false,
-              error: error.message,
-              stderr: error.stderr?.toString() || "",
-            };
-          }
-        },
-      },
-    },
+    tools,
   });
 
   // Display the assistant's response
