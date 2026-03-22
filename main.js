@@ -18,16 +18,57 @@ function askQuestion(prompt) {
         rl.question(prompt, (answer) => resolve(answer));
     });
 }
-async function executeBashCommand(prompt) {
-    const result = await generateText({
-        model,
-        prompt: `Convert this natural language request to a bash command. Return ONLY the command in JSON format with "command" key:
-
-${prompt}`,
-        output: Output.object({
-            schema: z.object({ command: z.string() }),
-        }),
-    });
+const bashCommandSchema = z.object({
+    command: z.string(),
+    example: z.string(),
+});
+async function executeBashCommand(_prompt) {
+    let result;
+    let prompt;
+    try {
+        prompt = `Convert this natural language request to a bash command. Return ONLY the command in raw JSON format with "command" key:
+${_prompt}`;
+        result = await generateText({
+            model,
+            prompt,
+            output: Output.object({
+                schema: bashCommandSchema,
+            }),
+        });
+    }
+    catch (error) {
+        let errorMessage = "";
+        if (error && typeof error === "object" && "cause" in error) {
+            const cause = error;
+            if (cause.cause) {
+                errorMessage = cause.cause.message;
+            }
+        }
+        if (!errorMessage && error && typeof error === "object" && "message" in error) {
+            errorMessage = error.message;
+        }
+        console.log("------error");
+        prompt =
+            prompt +
+                "\n\nError: " +
+                errorMessage +
+                "\n\nPlease fix the output payload according to error message and return the correct output.";
+        console.log("------prompt", prompt);
+        // Retry with fixed prompt
+        try {
+            result = await generateText({
+                model,
+                prompt,
+                output: Output.object({
+                    schema: bashCommandSchema,
+                }),
+            });
+        }
+        catch (retryError) {
+            console.error("Failed to generate valid output after retry:", retryError);
+            return;
+        }
+    }
     console.log("Result:", result);
     const command = result.output.command.trim();
     console.log(`Executing: ${command}`);
@@ -42,7 +83,8 @@ ${prompt}`,
 async function main() {
     while (true) {
         const userPrompt = await askQuestion("\nWhat would you like to do? ");
-        if (userPrompt.toLowerCase() === "exit" || userPrompt.toLowerCase() === "quit") {
+        if (userPrompt.toLowerCase() === "exit" ||
+            userPrompt.toLowerCase() === "quit") {
             rl.close();
             break;
         }
