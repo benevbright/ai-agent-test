@@ -1,7 +1,12 @@
 # TypeScript build outputs
-*.js
-*.js.map
+dist/
+build/
+out/
+lib/
 *.tsbuildinfo
+
+# Optional: ignore .js.map files if not needed
+# *.js.map
 
 # Node modules
 node_modules/
