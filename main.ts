@@ -1,6 +1,8 @@
 import { generateText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
+import { execSync } from "child_process";
+import * as readline from "readline";
 
 dotenv.config();
 
@@ -9,10 +11,47 @@ const model = createOpenAI({
   apiKey: "dummy",
 })("qwen3-coder-next");
 
-console.log("Generating text...");
-const { text } = await generateText({
-  model,
-  prompt: "Write a haiku about the changing seasons.",
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
 });
 
-console.log(text);
+function askQuestion(prompt: string): Promise<string> {
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => resolve(answer));
+  });
+}
+
+async function executeBashCommand(prompt: string) {
+  const { text } = await generateText({
+    model,
+    prompt: `Convert this natural language request to a bash command. Return ONLY the command, nothing else:
+
+${prompt}`,
+  });
+
+  const command = text.trim();
+  console.log(`Executing: ${command}`);
+
+  try {
+    const result = execSync(command, { encoding: "utf-8", stdio: "pipe" });
+    console.log("Output:", result);
+  } catch (error) {
+    console.error("Error executing command:", error);
+  }
+}
+
+async function main() {
+  while (true) {
+    const userPrompt = await askQuestion("\nWhat would you like to do? ");
+    
+    if (userPrompt.toLowerCase() === "exit" || userPrompt.toLowerCase() === "quit") {
+      rl.close();
+      break;
+    }
+
+    await executeBashCommand(userPrompt);
+  }
+}
+
+main();
