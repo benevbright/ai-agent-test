@@ -1,18 +1,11 @@
-# Dependencies
+# TypeScript build outputs
+*.js
+*.js.map
+*.tsbuildinfo
+
+# Node modules
 node_modules/
 
 # Environment variables
 .env
-
-# Build output
-dist/
-*.tsbuildinfo
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Logs
-*.log
+.env.local
