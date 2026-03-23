@@ -3,13 +3,22 @@ import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
 import * as readline from "readline";
 import { tools } from "./tools.js";
+import { assert } from "console";
 
 dotenv.config();
 
+const baseUrl = process.env.API_BASE_URL || "";
+const apiKey = process.env.API_KEY || "";
+const modelName = process.env.MODEL_NAME || "";
+
+assert(baseUrl, "API_BASE_URL is not defined in .env file");
+assert(apiKey, "API_KEY is not defined in .env file");
+assert(modelName, "MODEL_NAME is not defined in .env file");
+
 const model = createOpenAI({
-  baseURL: "http://localhost:8090/v1",
-  apiKey: "dummy",
-})("qwen3-coder-next");
+  baseURL: baseUrl,
+  apiKey: apiKey,
+})(modelName);
 const systemPrompt = `You are a helpful assistant for software developers. When asked, think of tools you have and try to use them as much as possible.`;
 
 const rl = readline.createInterface({
