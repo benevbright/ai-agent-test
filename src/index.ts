@@ -54,46 +54,57 @@ async function runLoop(prompt: string) {
     content: prompt,
   });
 
-  const res = await generateText({
-    model,
-    messages,
-    tools,
-    system: systemPrompt,
-    // maxRetries: 3
-  });
+  while (true) {
+    const res = await generateText({
+      model,
+      messages,
+      tools,
+      system: systemPrompt,
+      // maxRetries: 3
+    });
 
-  // Display the assistant's response
-  if (res.text) {
-    console.log("\nAssistant:", res.text);
-  }
+    // Display the assistant's response
+    if (res.text) {
+      console.log("\nAssistant:", res.text);
+      messages.push({
+        role: "assistant",
+        content: res.text,
+      });
+      break;
+    }
 
-  // Display tool calls if any
-  if (res.toolCalls && res.toolCalls.length > 0) {
-    console.log("\nTool calls:", JSON.stringify(res.toolCalls, null, 2));
-  }
+    // Display tool calls if any
+    if (res.toolCalls && res.toolCalls.length > 0) {
+      console.log("\nTool calls:", JSON.stringify(res.toolCalls, null, 2));
+    }
 
-  // Display tool results if any
-  if (res.toolResults && res.toolResults.length > 0) {
-    for (const toolResult of res.toolResults) {
-      const output = (toolResult as any).output;
-      if (output && output.success) {
-        console.log(output.output);
-      } else if (output) {
-        console.error(output.stderr || output.error);
+    // Display tool results if any
+    if (res.toolResults && res.toolResults.length > 0) {
+      for (const toolResult of res.toolResults) {
+        const output = (toolResult as any).output;
+        if (output && output.success) {
+          // console.log(output.output);
+          console.log("[appened tool result]", toolResult.toolName);
+          messages.push({
+            role: "tool",
+            content: [
+              {
+                type: "tool-result",
+                toolCallId: toolResult.toolCallId,
+                toolName: toolResult.toolName,
+                output: {
+                  type: "text",
+                  value: output.output,
+                },
+              },
+            ],
+          });
+        } else if (output) {
+          console.error(output.stderr || output.error);
+        }
       }
     }
   }
-
-  // Add assistant message to history
-  const assistantContent =
-    res.text ||
-    (res.toolCalls && res.toolCalls.length > 0
-      ? `[tool calls: ${res.toolCalls.map((tc: any) => tc.toolName).join(", ")}]`
-      : "");
-  messages.push({
-    role: "assistant",
-    content: assistantContent,
-  });
 }
 
 async function main() {

@@ -1,7 +1,10 @@
+import { JSDOM } from "jsdom";
+import { type ToolSet } from "ai";
 import { z } from "zod";
 import { execSync } from "child_process";
+import { assert } from "console";
 
-export const tools = {
+export const tools: ToolSet = {
   bash: {
     description: "Execute a bash command and return its output",
     inputSchema: z.object({
@@ -25,6 +28,66 @@ export const tools = {
           stderr: error.stderr?.toString() || "",
         };
       }
+    },
+  },
+  internetSearch: {
+    description: "Search the internet for information",
+    inputSchema: z.object({
+      query: z.string().describe("The search query"),
+    }),
+    execute: async ({ query }: { query: string }) => {
+      const apiKey = process.env.BRAVE_API_KEY || "";
+      assert(
+        apiKey,
+        "BRAVE_API_KEY environment variable is required for internetSearch tool",
+      );
+
+      const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: "1" })}`;
+
+      console.log("[brave search]", query);
+      const response = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          "Accept-Encoding": "gzip",
+          "X-Subscription-Token": apiKey,
+        },
+      });
+      if (!response.ok) {
+        console.log(
+          "-------failed response:",
+          response.status,
+          response.statusText,
+        );
+        return {
+          success: false,
+          error: `Search API error: ${response.status} ${response.statusText}`,
+        };
+      }
+      const data = await response.json();
+      const { results } = data.web || {};
+      if (!results || results.length === 0) {
+        return {
+          success: false,
+          error: "No search results found",
+        };
+      }
+
+      console.log("[getting body]", results[0].url);
+      const html = await fetch(results[0].url, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+          Accept:
+            "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        },
+      }).then((res) => res.text());
+      const dom = new JSDOM(html, { url });
+      const body = dom.window.document.body.textContent || "";
+      console.log("[return tool result]");
+      return {
+        success: true,
+        output: body.slice(0, 3000),
+      };
     },
   },
 };
