@@ -10,7 +10,7 @@ const model = createOpenAI({
   baseURL: "http://localhost:8090/v1",
   apiKey: "dummy",
 })("qwen3-coder-next");
-const systemPrompt = `You are a helpful assistant for software developers. You can understand user prompts and generate responses to assist with coding tasks. You can also call tools to execute specific functions when needed. Always try to help the user with their coding questions or tasks, and use tools when appropriate to provide accurate and efficient assistance.`;
+const systemPrompt = `You are a helpful assistant for software developers. When asked, think of tools you have and try to use them as much as possible.`;
 
 const rl = readline.createInterface({
   input: process.stdin,
