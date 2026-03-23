@@ -73,9 +73,10 @@ async function runLoop(prompt: string) {
   }
 
   // Add assistant message to history
+  const assistantContent = res.text || (res.toolCalls && res.toolCalls.length > 0 ? `[tool calls: ${res.toolCalls.map((tc: any) => tc.toolName).join(", ")}]` : "");
   messages.push({
     role: "assistant",
-    content: res.text || "",
+    content: assistantContent,
   });
 }
 
