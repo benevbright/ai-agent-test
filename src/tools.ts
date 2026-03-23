@@ -53,11 +53,6 @@ export const tools: ToolSet = {
         },
       });
       if (!response.ok) {
-        console.log(
-          "-------failed response:",
-          response.status,
-          response.statusText,
-        );
         return {
           success: false,
           error: `Search API error: ${response.status} ${response.statusText}`,
