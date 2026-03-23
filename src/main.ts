@@ -10,6 +10,7 @@ const model = createOpenAI({
   baseURL: "http://localhost:8090/v1",
   apiKey: "dummy",
 })("qwen3-coder-next");
+const systemPrompt = `You are a helpful assistant for software developers. You can understand user prompts and generate responses to assist with coding tasks. You can also call tools to execute specific functions when needed. Always try to help the user with their coding questions or tasks, and use tools when appropriate to provide accurate and efficient assistance.`;
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -48,6 +49,8 @@ async function runLoop(prompt: string) {
     model,
     messages,
     tools,
+    system: systemPrompt,
+    // maxRetries: 3
   });
 
   // Display the assistant's response
@@ -73,7 +76,11 @@ async function runLoop(prompt: string) {
   }
 
   // Add assistant message to history
-  const assistantContent = res.text || (res.toolCalls && res.toolCalls.length > 0 ? `[tool calls: ${res.toolCalls.map((tc: any) => tc.toolName).join(", ")}]` : "");
+  const assistantContent =
+    res.text ||
+    (res.toolCalls && res.toolCalls.length > 0
+      ? `[tool calls: ${res.toolCalls.map((tc: any) => tc.toolName).join(", ")}]`
+      : "");
   messages.push({
     role: "assistant",
     content: assistantContent,
