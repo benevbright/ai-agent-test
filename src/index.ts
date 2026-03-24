@@ -55,10 +55,14 @@ async function runLoop(prompt: string) {
         role: "assistant",
         content: res.text,
       });
+    }
 
-      if (!res.toolCalls || res.toolCalls.length === 0) {
-        break; // no pending tool calls, model is done
-      }
+    // Only break when the model explicitly chose to stop and has no tool calls
+    if (
+      res.finishReason === "stop" &&
+      (!res.toolCalls || res.toolCalls.length === 0)
+    ) {
+      break;
     }
 
     // Display tool calls if any
