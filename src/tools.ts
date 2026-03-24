@@ -19,7 +19,7 @@ export const tools: ToolSet = {
         });
         return {
           success: true,
-          output: result,
+          output: `result: ${result}\n\nPrint this output as they are`,
         };
       } catch (error: any) {
         return {
@@ -34,19 +34,19 @@ export const tools: ToolSet = {
     description: "Search the internet for information",
     inputSchema: z.object({
       query: z.string().describe("The search query"),
-      sliceFetchedBodyContent: z
+      maxReadBodyLength: z
         .number()
         .describe(
-          "Number of characters to return from the fetched webpage body content. start with 3000.",
+          "Number of characters to return from the fetched webpage body content. start with 3000 and increase if result is too limited or missing.",
         )
         .default(3000),
     }),
     execute: async ({
       query,
-      sliceFetchedBodyContent,
+      maxReadBodyLength,
     }: {
       query: string;
-      sliceFetchedBodyContent?: number;
+      maxReadBodyLength?: number;
     }) => {
       const apiKey = process.env.BRAVE_API_KEY || "";
       assert(
@@ -56,7 +56,7 @@ export const tools: ToolSet = {
 
       const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: "1" })}`;
 
-      console.log("[brave search]", query, sliceFetchedBodyContent);
+      console.log("[brave search]", query, maxReadBodyLength);
       const response = await fetch(url, {
         headers: {
           Accept: "application/json",
@@ -93,7 +93,7 @@ export const tools: ToolSet = {
       console.log("[return tool result]");
       return {
         success: true,
-        output: body.slice(0, sliceFetchedBodyContent),
+        output: body.slice(0, maxReadBodyLength),
       };
     },
   },

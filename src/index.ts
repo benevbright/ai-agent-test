@@ -56,8 +56,9 @@ async function runLoop(prompt: string) {
         content: res.text,
       });
 
-      // TODO: need to figure out if the task is resolved or not
-      continue;
+      if (!res.toolCalls || res.toolCalls.length === 0) {
+        break; // no pending tool calls, model is done
+      }
     }
 
     // Display tool calls if any
