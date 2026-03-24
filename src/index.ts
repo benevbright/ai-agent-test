@@ -1,4 +1,4 @@
-import { generateText, type ToolContent } from "ai";
+import { generateText, type ModelMessage, type ToolContent } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
 import * as readline from "readline";
@@ -46,7 +46,7 @@ type Message =
       content: ToolContent;
     };
 
-const messages: Message[] = [];
+const messages: ModelMessage[] = [];
 
 async function runLoop(prompt: string) {
   messages.push({
@@ -77,31 +77,43 @@ async function runLoop(prompt: string) {
     if (res.toolCalls && res.toolCalls.length > 0) {
       console.log("\nTool calls:", JSON.stringify(res.toolCalls, null, 2));
     }
+    for (const toolCall of res.toolCalls || []) {
+      console.log("[appened tool call]", toolCall.toolName, toolCall.input);
+      messages.push({
+        role: "assistant",
+        content: [
+          {
+            type: "tool-call",
+            toolCallId: toolCall.toolCallId,
+            toolName: toolCall.toolName,
+            input: toolCall.input,
+          },
+        ],
+      });
+    }
 
     // Display tool results if any
-    if (res.toolResults && res.toolResults.length > 0) {
-      for (const toolResult of res.toolResults) {
-        const output = (toolResult as any).output;
-        if (output && output.success) {
-          // console.log(output.output);
-          console.log("[appened tool result]", toolResult.toolName);
-          messages.push({
-            role: "tool",
-            content: [
-              {
-                type: "tool-result",
-                toolCallId: toolResult.toolCallId,
-                toolName: toolResult.toolName,
-                output: {
-                  type: "text",
-                  value: output.output,
-                },
+    for (const toolResult of res.toolResults || []) {
+      const output = (toolResult as any).output;
+      if (output && output.success) {
+        // console.log(output.output);
+        console.log("[appened tool result]", toolResult.toolName);
+        messages.push({
+          role: "tool",
+          content: [
+            {
+              type: "tool-result",
+              toolCallId: toolResult.toolCallId,
+              toolName: toolResult.toolName,
+              output: {
+                type: "text",
+                value: output.output,
               },
-            ],
-          });
-        } else if (output) {
-          console.error(output.stderr || output.error);
-        }
+            },
+          ],
+        });
+      } else if (output) {
+        console.error(output.stderr || output.error);
       }
     }
   }

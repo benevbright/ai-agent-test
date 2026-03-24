@@ -34,8 +34,20 @@ export const tools: ToolSet = {
     description: "Search the internet for information",
     inputSchema: z.object({
       query: z.string().describe("The search query"),
+      sliceFetchedBodyContent: z
+        .number()
+        .describe(
+          "Number of characters to return from the fetched webpage body content. start with 3000.",
+        )
+        .default(3000),
     }),
-    execute: async ({ query }: { query: string }) => {
+    execute: async ({
+      query,
+      sliceFetchedBodyContent,
+    }: {
+      query: string;
+      sliceFetchedBodyContent?: number;
+    }) => {
       const apiKey = process.env.BRAVE_API_KEY || "";
       assert(
         apiKey,
@@ -44,7 +56,7 @@ export const tools: ToolSet = {
 
       const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: "1" })}`;
 
-      console.log("[brave search]", query);
+      console.log("[brave search]", query, sliceFetchedBodyContent);
       const response = await fetch(url, {
         headers: {
           Accept: "application/json",
@@ -81,7 +93,7 @@ export const tools: ToolSet = {
       console.log("[return tool result]");
       return {
         success: true,
-        output: body.slice(0, 3000),
+        output: body.slice(0, sliceFetchedBodyContent),
       };
     },
   },
