@@ -19,7 +19,7 @@ const model = createOpenAI({
   baseURL: baseUrl,
   apiKey: apiKey,
 })(modelName);
-const systemPrompt = `You are a helpful assistant for software developers. When asked, think of tools you have and try to use them as much as possible.`;
+const systemPrompt = `You are a helpful assistant for software developers. When asked, think of tools you have and try to use them as much as possible. Today's date:${new Date().toLocaleString()}`;
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -48,77 +48,72 @@ async function runLoop(prompt: string) {
       system: systemPrompt,
     });
 
-    // Display the assistant's response
+    // Build assistant message combining text and tool calls
+    const assistantContent: any[] = [];
+
     if (res.text) {
       console.log("\nAssistant:", res.text);
-      messages.push({
-        role: "assistant",
-        content: res.text,
-      });
+      assistantContent.push({ type: "text", text: res.text });
     }
 
-    // Only break when the model explicitly chose to stop and has no tool calls
-    if (
-      res.finishReason === "stop" &&
-      (!res.toolCalls || res.toolCalls.length === 0)
-    ) {
-      break;
-    }
-
-    // Display tool calls if any
     for (const toolCall of res.toolCalls || []) {
-      console.log("[appened tool call]", toolCall.toolName, toolCall.input);
-      messages.push({
-        role: "assistant",
-        content: [
-          {
-            type: "tool-call",
-            toolCallId: toolCall.toolCallId,
-            toolName: toolCall.toolName,
-            input: toolCall.input,
-          },
-        ],
+      // console.log("[appended tool call]", toolCall.toolName, toolCall.input);
+      assistantContent.push({
+        type: "tool-call",
+        toolCallId: toolCall.toolCallId,
+        toolName: toolCall.toolName,
+        input: toolCall.input,
       });
     }
 
-    // Display tool results if any
+    if (assistantContent.length > 0) {
+      messages.push({
+        role: "assistant",
+        content: assistantContent,
+      });
+    }
+
+    // Append tool results
+    const toolResultContent: ToolContent = [];
     for (const toolResult of res.toolResults || []) {
       const output = (toolResult as any).output;
       if (output && output.success) {
-        // console.log(output.output);
-        console.log("[appened tool result]", toolResult.toolName);
-        messages.push({
-          role: "tool",
-          content: [
-            {
-              type: "tool-result",
-              toolCallId: toolResult.toolCallId,
-              toolName: toolResult.toolName,
-              output: {
-                type: "text",
-                value: output.output,
-              },
-            },
-          ],
+        // console.log("[appended tool result]", toolResult.toolName);
+        toolResultContent.push({
+          type: "tool-result",
+          toolCallId: toolResult.toolCallId,
+          toolName: toolResult.toolName,
+          output: {
+            type: "text",
+            value:
+              output.output +
+              `\n\n[Tool execution metadata: ${JSON.stringify(output.metadata || {})}]`,
+          },
         });
       } else {
-        // console.error(output.stderr || output.error);
-        console.log("[appened FAILED tool result]", toolResult.toolName);
-        messages.push({
-          role: "tool",
-          content: [
-            {
-              type: "tool-result",
-              toolCallId: toolResult.toolCallId,
-              toolName: toolResult.toolName,
-              output: {
-                type: "text",
-                value: output.stderr || output.error || "Unknown error",
-              },
-            },
-          ],
+        // console.log("[appended FAILED tool result]", toolResult.toolName);
+        toolResultContent.push({
+          type: "tool-result",
+          toolCallId: toolResult.toolCallId,
+          toolName: toolResult.toolName,
+          output: {
+            type: "text",
+            value: output.stderr || output.error || "Unknown error",
+          },
         });
       }
+    }
+
+    if (toolResultContent.length > 0) {
+      messages.push({
+        role: "tool",
+        content: toolResultContent,
+      });
+    }
+
+    // Break when the model is done and has no tool calls to follow up on
+    if (!res.toolCalls || res.toolCalls.length === 0) {
+      break;
     }
   }
 }

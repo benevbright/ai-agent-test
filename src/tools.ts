@@ -11,7 +11,7 @@ export const tools: ToolSet = {
       command: z.string().describe("The bash command to execute"),
     }),
     execute: async ({ command }: { command: string }) => {
-      console.log(`Executing command: ${command}`);
+      console.log(`[bash tool] Executing command: ${command}`);
       try {
         const result = execSync(command, {
           encoding: "utf-8",
@@ -22,6 +22,7 @@ export const tools: ToolSet = {
           output: `result: ${result}\n\nPrint this output as they are`,
         };
       } catch (error: any) {
+        console.error(`[bash tool] ⚠️ Command failed: ${error.message}`);
         return {
           success: false,
           error: error.message,
@@ -31,15 +32,15 @@ export const tools: ToolSet = {
     },
   },
   internetSearch: {
-    description: "Search the internet for information",
+    description:
+      "Search the internet. IMPORTANT: If the 'output' is truncated or missing key details, call this tool again with a significantly higher 'maxReadBodyLength' (e.g., 5000 or 10000) to see more content.",
     inputSchema: z.object({
       query: z.string().describe("The search query"),
       maxReadBodyLength: z
         .number()
         .describe(
-          "Number of characters to return from the fetched webpage body content. start with 3000 and increase if result is too limited or missing.",
-        )
-        .default(3000),
+          "Number of characters to return from the fetched webpage body content. recommend to start with 2500",
+        ),
     }),
     execute: async ({
       query,
@@ -56,7 +57,7 @@ export const tools: ToolSet = {
 
       const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: "1" })}`;
 
-      console.log("[brave search]", query, maxReadBodyLength);
+      console.log("[internetSearch tool] Search", query);
       const response = await fetch(url, {
         headers: {
           Accept: "application/json",
@@ -65,6 +66,9 @@ export const tools: ToolSet = {
         },
       });
       if (!response.ok) {
+        console.log(
+          `[internetSearch tool] ⚠️ Search API error: ${response.status} ${response.statusText}`,
+        );
         return {
           success: false,
           error: `Search API error: ${response.status} ${response.statusText}`,
@@ -73,13 +77,19 @@ export const tools: ToolSet = {
       const data = await response.json();
       const { results } = data.web || {};
       if (!results || results.length === 0) {
+        console.log("[internetSearch tool] ⚠️ No search results found");
         return {
           success: false,
           error: "No search results found",
         };
       }
 
-      console.log("[getting body]", results[0].url);
+      // console.log("[getting body]", results[0].url);
+      console.log(
+        "[internetSearch tool] Fetching content from:",
+        results[0].url,
+        maxReadBodyLength,
+      );
       const html = await fetch(results[0].url, {
         headers: {
           "User-Agent":
@@ -90,10 +100,13 @@ export const tools: ToolSet = {
       }).then((res) => res.text());
       const dom = new JSDOM(html, { url });
       const body = dom.window.document.body.textContent || "";
-      console.log("[return tool result]");
+      // console.log("[return tool result]");
       return {
         success: true,
-        output: body.slice(0, maxReadBodyLength),
+        output: `${body.slice(0, maxReadBodyLength)}\n\n[WARNING: Content truncated. Total length: ${body.length} chars. Increase maxReadBodyLength to see more.]`,
+        metadata: {
+          maxReadBodyLength,
+        },
       };
     },
   },
