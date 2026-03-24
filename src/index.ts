@@ -111,6 +111,11 @@ async function runLoop(prompt: string) {
       });
     }
 
+    // Display token usage
+    console.log(
+      `\n[Token Usage] Input: ${res.usage.inputTokens || 0}, Output: ${res.usage.outputTokens || 0}, Total: ${res.usage.totalTokens || 0}`,
+    );
+
     // Break when the model is done and has no tool calls to follow up on
     if (!res.toolCalls || res.toolCalls.length === 0) {
       break;

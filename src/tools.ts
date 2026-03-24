@@ -57,7 +57,7 @@ export const tools: ToolSet = {
 
       const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: "1" })}`;
 
-      console.log("[internetSearch tool] Search", query);
+      console.log("[internetSearch tool] Search: ", query);
       const response = await fetch(url, {
         headers: {
           Accept: "application/json",
