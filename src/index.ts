@@ -32,20 +32,6 @@ function askQuestion(prompt: string): Promise<string> {
   });
 }
 
-type Message =
-  | {
-      role: "user";
-      content: string;
-    }
-  | {
-      role: "assistant";
-      content: string;
-    }
-  | {
-      role: "tool";
-      content: ToolContent;
-    };
-
 const messages: ModelMessage[] = [];
 
 async function runLoop(prompt: string) {
@@ -60,7 +46,6 @@ async function runLoop(prompt: string) {
       messages,
       tools,
       system: systemPrompt,
-      // maxRetries: 3
     });
 
     // Display the assistant's response
@@ -70,13 +55,12 @@ async function runLoop(prompt: string) {
         role: "assistant",
         content: res.text,
       });
-      break;
+
+      // TODO: need to figure out if the task is resolved or not
+      continue;
     }
 
     // Display tool calls if any
-    if (res.toolCalls && res.toolCalls.length > 0) {
-      console.log("\nTool calls:", JSON.stringify(res.toolCalls, null, 2));
-    }
     for (const toolCall of res.toolCalls || []) {
       console.log("[appened tool call]", toolCall.toolName, toolCall.input);
       messages.push({
@@ -112,8 +96,23 @@ async function runLoop(prompt: string) {
             },
           ],
         });
-      } else if (output) {
-        console.error(output.stderr || output.error);
+      } else {
+        // console.error(output.stderr || output.error);
+        console.log("[appened FAILED tool result]", toolResult.toolName);
+        messages.push({
+          role: "tool",
+          content: [
+            {
+              type: "tool-result",
+              toolCallId: toolResult.toolCallId,
+              toolName: toolResult.toolName,
+              output: {
+                type: "text",
+                value: output.stderr || output.error || "Unknown error",
+              },
+            },
+          ],
+        });
       }
     }
   }
@@ -131,8 +130,15 @@ async function main() {
       break;
     }
 
+    // TODO: print debug
+    if (userPrompt.toLowerCase() === "debug") {
+      console.log("\n--- Debug Info ---");
+      console.log("Messages:", JSON.stringify(messages, null, 2));
+      console.log("--- End Debug Info ---\n");
+      continue;
+    }
+
     await runLoop(userPrompt);
-    // console.log("--------messages:", messages);
   }
 }
 
