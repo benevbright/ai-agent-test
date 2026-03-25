@@ -5,6 +5,16 @@ import { execSync } from "child_process";
 import { assert } from "console";
 
 export const tools: ToolSet = {
+  // deliver_final_answer: {
+  //   description:
+  //     "Use this tool to provide the final answer to the user once you have all the information.",
+  //   inputSchema: z.object({
+  //     answer: z
+  //       .string()
+  //       .describe("The complete, final response for the software developer."),
+  //   }),
+  //   execute: async ({ answer }) => ({ success: true, output: answer }),
+  // },
   bash: {
     description: "Execute a bash command and return its output",
     inputSchema: z.object({

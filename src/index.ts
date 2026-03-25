@@ -1,9 +1,10 @@
-import { generateText, type ModelMessage, type ToolContent } from "ai";
+import { streamText, type ModelMessage, type ToolContent } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
 import * as readline from "readline";
 import { tools } from "./tools.js";
 import { assert } from "console";
+import chalk from "chalk";
 
 dotenv.config();
 
@@ -47,7 +48,7 @@ async function runLoop(prompt: string) {
   });
 
   while (true) {
-    const res = await generateText({
+    const res = await streamText({
       model,
       messages,
       tools,
@@ -57,12 +58,24 @@ async function runLoop(prompt: string) {
     // Build assistant message combining text and tool calls
     const assistantContent: any[] = [];
 
-    if (res.text) {
-      console.log("\nAssistant:", res.text);
-      assistantContent.push({ type: "text", text: res.text });
+    let fullText = "";
+    for await (const part of res.textStream) {
+      if (part) {
+        if (!fullText) console.log("\nAssistant: ");
+        process.stdout.write(part);
+        fullText += part;
+      }
     }
 
-    for (const toolCall of res.toolCalls || []) {
+    if (fullText) {
+      assistantContent.push({ type: "text", text: fullText });
+    }
+
+    const toolCalls = await res.toolCalls;
+    const toolResults = await res.toolResults;
+    const usage = await res.usage;
+
+    for (const toolCall of toolCalls || []) {
       // console.log("[appended tool call]", toolCall.toolName, toolCall.input);
       assistantContent.push({
         type: "tool-call",
@@ -81,7 +94,7 @@ async function runLoop(prompt: string) {
 
     // Append tool results
     const toolResultContent: ToolContent = [];
-    for (const toolResult of res.toolResults || []) {
+    for (const toolResult of toolResults || []) {
       const output = (toolResult as any).output;
       if (output && output.success) {
         // console.log("[appended tool result]", toolResult.toolName);
@@ -119,11 +132,13 @@ async function runLoop(prompt: string) {
 
     // Display token usage
     console.log(
-      `\n[Token Usage] Input: ${res.usage.inputTokens || 0}, Output: ${res.usage.outputTokens || 0}, Total: ${res.usage.totalTokens || 0}`,
+      chalk.gray(
+        `\n\n[Token Usage] Input: ${usage.inputTokens || 0}, Output: ${usage.outputTokens || 0}, Total: ${usage.totalTokens || 0}`,
+      ),
     );
 
     // Break when the model is done and has no tool calls to follow up on
-    if (!res.toolCalls || res.toolCalls.length === 0) {
+    if (!toolCalls || toolCalls.length === 0) {
       break;
     }
   }
