@@ -48,7 +48,7 @@ export const tools: ToolSet = {
       console.log(
         chalk.yellow(`[Progress Update] Current progress: ${progress}%`),
       );
-      return { success: true, output: `Progress recorded: ${progress}%` };
+      return { success: true, output: progress };
     },
   },
   bash: {

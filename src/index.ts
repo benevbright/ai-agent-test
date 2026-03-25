@@ -150,6 +150,13 @@ async function runLoop(prompt: string) {
     if (toolCalls.length === 0) {
       break;
     }
+    const progressRes = toolResults.find(
+      (result) => result.toolName === "record_progress",
+    );
+    if (progressRes && progressRes.output === 100) {
+      console.log("\nTask completed with 100% progress!");
+      break;
+    }
   }
 }
 
