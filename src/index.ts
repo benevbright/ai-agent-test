@@ -46,6 +46,7 @@ const model = createOpenAI({
   baseURL: baseUrl,
   apiKey: apiKey,
 })(modelName);
+
 const systemPrompt = `
 You are a helpful assistant for software developers.
 When asked, think of tools you have and try to use them as much as possible.

@@ -21,7 +21,7 @@ export const tools: ToolSet = {
   // },
   ask_user_followup: {
     description:
-      "OPTIONAL: Use this to ask the user a follow-up question if you need more information to complete the task. You can call this multiple times if needed.",
+      "Use this to ask the user a follow-up question if you need more information during the conversatino with user.",
     inputSchema: z.object({
       question: z
         .string()
