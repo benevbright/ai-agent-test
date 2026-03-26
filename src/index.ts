@@ -5,8 +5,34 @@ import * as readline from "readline";
 import { tools } from "./tools.js";
 import { assert } from "console";
 import chalk from "chalk";
+import * as fs from "fs";
+import path from "path";
 
 dotenv.config();
+
+// Log file setup
+const logDir = path.join(process.cwd(), "logs");
+if (!fs.existsSync(logDir)) {
+  fs.mkdirSync(logDir, { recursive: true });
+}
+const logFile = path.join(
+  logDir,
+  `agent-${new Date().toISOString().split("T")[0]}.log`,
+);
+
+function logToFile(message: string) {
+  const timestamp = new Date().toISOString();
+  const logEntry = `[${timestamp}] ${message}\n`;
+  fs.appendFileSync(logFile, logEntry);
+}
+
+function writeToFile(filePath: string, content: string) {
+  fs.writeFileSync(filePath, content, "utf8");
+}
+
+function appendToFile(filePath: string, content: string) {
+  fs.appendFileSync(filePath, content, "utf8");
+}
 
 const baseUrl = process.env.API_BASE_URL || "";
 const apiKey = process.env.API_KEY || "";
@@ -50,11 +76,34 @@ function askQuestion(prompt: string): Promise<string> {
 
 const messages: ModelMessage[] = [];
 
+function logMessages() {
+  logToFile("\n--- Current Messages ---");
+  messages.forEach((msg, idx) => {
+    logToFile(`Message ${idx}: ${msg.role}`);
+    if (Array.isArray(msg.content)) {
+      msg.content.forEach((c: any) => {
+        if (c.type === "text")
+          logToFile(`  [Text] ${c.text.substring(0, 100)}...`);
+        else if (c.type === "tool-call")
+          logToFile(`  [Tool Call] ${c.toolName}`);
+        else if (c.type === "tool-result")
+          logToFile(`  [Tool Result] ${c.toolName}`);
+      });
+    } else {
+      logToFile(
+        `  Content: ${typeof msg.content === "string" ? msg.content.substring(0, 100) : JSON.stringify(msg.content)}`,
+      );
+    }
+  });
+  logToFile("--- End Messages ---\n");
+}
+
 async function runLoop(prompt: string) {
   messages.push({
     role: "user",
     content: prompt,
   });
+  logToFile(`User prompt: ${prompt.substring(0, 200)}...`);
 
   while (true) {
     const res = await streamText({
@@ -100,6 +149,7 @@ async function runLoop(prompt: string) {
         role: "assistant",
         content: assistantContent,
       });
+      logToFile("Added assistant message with content");
     }
 
     // Append tool results
@@ -138,6 +188,7 @@ async function runLoop(prompt: string) {
         role: "tool",
         content: toolResultContent,
       });
+      logToFile(`Added ${toolResultContent.length} tool result(s)`);
     }
 
     // Display token usage
@@ -147,7 +198,12 @@ async function runLoop(prompt: string) {
       ),
     );
 
+    logToFile(
+      `Iteration complete. Tool calls: ${toolCalls?.length || 0}, Tool results: ${toolResultContent.length}`,
+    );
+    logMessages();
     if (toolCalls.length === 0) {
+      logToFile("=== break loop: no tool calls ===");
       break;
     }
     const progressRes = toolResults.find(
@@ -155,12 +211,14 @@ async function runLoop(prompt: string) {
     );
     if (progressRes && progressRes.output === 100) {
       console.log("\nTask completed with 100% progress!");
+      logToFile("=== break loop: task completed with 100% progress ===");
       break;
     }
   }
 }
 
 async function main() {
+  logToFile("\n========== Session Started ==========");
   while (true) {
     const userPrompt = await askQuestion("\nPrompt: ");
 
@@ -168,6 +226,8 @@ async function main() {
       userPrompt.toLowerCase() === "exit" ||
       userPrompt.toLowerCase() === "quit"
     ) {
+      logToFile("User exited the session");
+      logToFile("========== Session Ended ==========\n");
       rl.close();
       break;
     }
