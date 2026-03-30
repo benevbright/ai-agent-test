@@ -2,7 +2,7 @@ import { streamText, type ModelMessage, type ToolContent } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
 import * as readline from "readline";
-import { tools } from "./tools.js";
+import { tools } from "./tools/index.js";
 import { assert } from "console";
 import chalk from "chalk";
 import * as fs from "fs";
