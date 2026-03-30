@@ -34,10 +34,11 @@ assert(baseUrl, "API_BASE_URL is not defined in .env file");
 assert(apiKey, "API_KEY is not defined in .env file");
 assert(modelName, "MODEL_NAME is not defined in .env file");
 
-const model = createOpenAI({
+const provider = createOpenAI({
   baseURL: baseUrl,
   apiKey: apiKey,
-})(modelName);
+});
+const model = provider.chat(modelName);
 
 const systemPrompt = `
 You are a helpful assistant for software developers.
