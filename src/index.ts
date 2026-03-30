@@ -26,14 +26,6 @@ function logToFile(message: string) {
   fs.appendFileSync(logFile, logEntry);
 }
 
-function writeToFile(filePath: string, content: string) {
-  fs.writeFileSync(filePath, content, "utf8");
-}
-
-function appendToFile(filePath: string, content: string) {
-  fs.appendFileSync(filePath, content, "utf8");
-}
-
 const baseUrl = process.env.API_BASE_URL || "";
 const apiKey = process.env.API_KEY || "";
 const modelName = process.env.MODEL_NAME || "";

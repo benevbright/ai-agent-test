@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "no-unused-vars": "warn",
+    "no-undef": "error",
+    "no-console": "off",
+    "prefer-const": "warn",
+    "no-var": "warn",
+    "eqeqeq": ["warn", "smart"],
+    "curly": ["warn", "multi-or-nest", "consistent"]
+  },
+  "env": {
+    "node": true,
+    "es2021": true
+  },
+  "globals": {
+    "process": "readonly",
+    "console": "readonly"
+  }
+}

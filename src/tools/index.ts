@@ -3,7 +3,6 @@ import { recordProgress } from "./record_progress.js";
 import { bashTool } from "./bash.js";
 import { internetSearch } from "./internet_search.js";
 import type { ToolSet } from "ai";
-import { deliverFinalAnswer } from "./deliver_final_answer.js";
 
 export const tools: ToolSet = {
   //   deliver_final_answer: deliverFinalAnswer,

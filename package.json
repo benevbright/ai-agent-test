@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky"
+    "prepare": "husky",
+    "lint": "oxlint . --ignore-pattern dist/"
   },
   "author": "",
   "license": "ISC",
@@ -14,6 +15,7 @@
     "@types/jsdom": "^28.0.1",
     "@types/node": "^25.5.0",
     "husky": "^9.1.7",
+    "oxlint": "^1.57.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },

@@ -9,7 +9,7 @@ export const deliverFinalAnswer = {
       .string()
       .describe("The final markdown-formatted answer for the developer."),
   }),
-  execute: async ({ answer }: { answer: string }) => {
+  execute: async ({ answer: _answer }: { answer: string }) => {
     console.log(chalk.yellow("\nDelivering final answer..."));
     return { success: true, output: "Answer delivered." };
   },
