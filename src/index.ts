@@ -2,7 +2,7 @@ import { streamText, type ModelMessage, type ToolContent } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 import dotenv from "dotenv";
 import * as readline from "readline";
-import { tools } from "./tools/index.js";
+import { toolNames, tools } from "./tools/index.js";
 import { assert } from "console";
 import chalk from "chalk";
 import { logToFile, logMessages } from "./utils/system.js";
@@ -175,11 +175,19 @@ async function runLoop(prompt: string) {
       break;
     }
     const progressRes = toolResults.find(
-      (result) => result.toolName === "record_progress",
+      (result) => result.toolName === toolNames.recordProgress,
     );
     if (progressRes && progressRes.output === 100) {
       console.log("\nTask completed with 100% progress!");
       logToFile("=== break loop: task completed with 100% progress ===");
+      break;
+    }
+    const followUpRes = toolResults.find(
+      (result) => result.toolName === toolNames.askUserFollowup,
+    );
+    if (followUpRes) {
+      console.log(chalk.yellow("\n--- Waiting for user input ---"));
+      logToFile("=== break loop: asked user followup ===");
       break;
     }
   }

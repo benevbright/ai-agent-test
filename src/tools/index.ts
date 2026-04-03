@@ -4,10 +4,17 @@ import { bashTool } from "./bash.js";
 import { internetSearch } from "./internet_search.js";
 import type { ToolSet } from "ai";
 
-export const tools: ToolSet = {
+export const toolNames = {
+  askUserFollowup: "ask_user_followup",
+  recordProgress: "record_progress",
+  bash: "bash",
+  internetSearch: "internet_search",
+} as const;
+
+export const tools = {
   //   deliver_final_answer: deliverFinalAnswer,
-  ask_user_followup: askUserFollowup,
-  record_progress: recordProgress,
-  bash: bashTool,
-  internet_search: internetSearch,
-};
+  [toolNames.askUserFollowup]: askUserFollowup,
+  [toolNames.recordProgress]: recordProgress,
+  [toolNames.bash]: bashTool,
+  [toolNames.internetSearch]: internetSearch,
+} as const satisfies ToolSet;
