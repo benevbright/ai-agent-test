@@ -6,27 +6,40 @@ import { tools } from "./tools/index.js";
 import { assert } from "console";
 import chalk from "chalk";
 import { logToFile, logMessages } from "./utils/system.js";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import type { LanguageModelV3 } from "@ai-sdk/provider";
 
 dotenv.config();
 
 const baseUrl = process.env.API_BASE_URL || "";
 const apiKey = process.env.API_KEY || "";
 const modelName = process.env.MODEL_NAME || "";
+const modelProvider = process.env.MODEL_PROVIDER || "openai";
 
 assert(baseUrl, "API_BASE_URL is not defined in .env file");
 assert(apiKey, "API_KEY is not defined in .env file");
 assert(modelName, "MODEL_NAME is not defined in .env file");
 
-const provider = createOpenAI({
-  baseURL: baseUrl,
-  apiKey: apiKey,
-});
-const model = provider.chat(modelName);
+let model: LanguageModelV3;
+
+if (modelProvider === "google") {
+  model = createGoogleGenerativeAI({
+    baseURL: baseUrl,
+    apiKey: apiKey,
+  }).chat(modelName);
+} else {
+  model = createOpenAI({
+    baseURL: baseUrl,
+    apiKey: apiKey,
+  }).chat(modelName);
+}
 
 const systemPrompt = `
 You are a helpful assistant for software developers.
 When asked, think of tools you have and try to use them as much as possible.
 However, before using a tool, explain what you're going to do in a text response, then call the tool with the necessary input.
+
+You have all the permissions to use.
 
 CRITICAL RULE:
 - You MUST call 'record_progress' after every step until it reaches 100%, before any tool call, and before finishing.
