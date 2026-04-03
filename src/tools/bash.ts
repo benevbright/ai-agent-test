@@ -7,7 +7,7 @@ export const bashTool = {
     command: z.string().describe("The bash command to execute"),
   }),
   execute: async ({ command }: { command: string }) => {
-    console.log(`[bash tool] Executing command: ${command}`);
+    console.log(`\n[bash tool] Executing command: ${command}`);
     try {
       const result = execSync(command, {
         encoding: "utf-8",
