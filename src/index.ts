@@ -203,7 +203,7 @@ async function main() {
       const parts = userPrompt.trim().split(/\s+/);
       const tailNumStr = parts.length > 1 ? parts[1] : "";
       const tailNum = tailNumStr ? parseInt(tailNumStr, 10) : undefined;
-      
+
       if (tailNum && !isNaN(tailNum)) {
         console.log(`Last ${tailNum} message(s):`);
         const messagesToDisplay = tailNum > 0 ? messages.slice(-tailNum) : [];
@@ -216,7 +216,15 @@ async function main() {
       continue;
     }
 
-    await runLoop(userPrompt);
+    try {
+      await runLoop(userPrompt);
+    } catch (error) {
+      console.error(
+        chalk.red(`Error in main loop: ${(error as Error).message}`),
+      );
+      console.log(JSON.stringify(messages.slice(-10), null, 2));
+      throw error;
+    }
   }
 }
 
