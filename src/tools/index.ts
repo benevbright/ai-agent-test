@@ -5,6 +5,7 @@ import { internetSearch } from "./internet_search.js";
 import { readTool } from "./read.js";
 import { writeTool } from "./write.js";
 import { editTool } from "./edit.js";
+import { compilationCheckTool } from "./compilationCheck.js";
 import type { ToolSet } from "ai";
 
 export const toolNames = {
@@ -15,6 +16,7 @@ export const toolNames = {
   read: "read",
   write: "write",
   edit: "edit",
+  compilationCheck: "compilation_check",
 } as const;
 
 export const tools = {
@@ -27,4 +29,5 @@ export const tools = {
   [toolNames.read]: readTool,
   [toolNames.write]: writeTool,
   [toolNames.edit]: editTool,
+  [toolNames.compilationCheck]: compilationCheckTool,
 } as const satisfies ToolSet;
