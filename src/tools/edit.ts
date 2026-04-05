@@ -10,7 +10,7 @@ export interface Edit {
 
 export const editTool = {
   description:
-    "Edit a file by replacing exact text matches. Useful for making precise changes to existing files without rewriting the entire content.",
+    "Make precise, targeted edits to existing files. Replace specific text patterns without rewriting the entire file. Use this for modifications when you want to keep most of the file intact and only change specific lines or sections.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to edit"),
     edits: z.array(

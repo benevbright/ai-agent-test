@@ -5,7 +5,7 @@ import chalk from "chalk";
 
 export const writeTool = {
   description:
-    "Write content to a file. Creates the file if it doesn't exist, overwrites if it does. Useful for creating new files or replacing entire file contents.",
+    "WRITE FILE CONTENTS ENTIRELY. Overwrites the entire existing file content with new content. Use this ONLY when you need to replace the complete file contents or create a new file. Not suitable for targeted changes to specific parts of a file.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to write"),
     content: z.string().describe("The content to write to the file"),
