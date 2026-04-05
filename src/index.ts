@@ -198,9 +198,20 @@ async function main() {
     }
 
     // TODO: print debug
-    if (userPrompt.toLowerCase() === "debug") {
+    if (userPrompt.toLowerCase().startsWith("debug")) {
       console.log("\n--- Debug Info ---");
-      console.log("Messages:", JSON.stringify(messages, null, 2));
+      const parts = userPrompt.trim().split(/\s+/);
+      const tailNumStr = parts.length > 1 ? parts[1] : "";
+      const tailNum = tailNumStr ? parseInt(tailNumStr, 10) : undefined;
+      
+      if (tailNum && !isNaN(tailNum)) {
+        console.log(`Last ${tailNum} message(s):`);
+        const messagesToDisplay = tailNum > 0 ? messages.slice(-tailNum) : [];
+        console.log(JSON.stringify(messagesToDisplay, null, 2));
+      } else {
+        console.log("All messages:");
+        console.log(JSON.stringify(messages, null, 2));
+      }
       console.log("--- End Debug Info ---\n");
       continue;
     }
