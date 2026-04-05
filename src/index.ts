@@ -8,6 +8,8 @@ import chalk from "chalk";
 import { logToFile, logMessages } from "./utils/system.js";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import type { LanguageModelV3 } from "@ai-sdk/provider";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
@@ -34,24 +36,11 @@ if (modelProvider === "google") {
   }).chat(modelName);
 }
 
-const systemPrompt = `
-You are a helpful assistant for software developers.
-When asked, think of tools you have and try to use them as much as possible.
-However, before using a tool, explain what you're going to do in a text response, then call the tool with the necessary input.
-
-You have all the permissions to use.
-
-CRITICAL RULE:
-- You MUST call 'record_progress' after every step until it reaches 100%, before any tool call, and before finishing.
-- if you need more information to complete the task, ask the user a follow-up question using 'ask_user_followup' tool. You can call this multiple times if needed.
-- if the same tools are kept being called with the similar input and not leading to progress, try to think of a different approach or ask the user for clarification using 'ask_user_followup'.
-
-Metadata:
-- Today's date: ${new Date().toLocaleString()}`;
-
-// - You are NOT allowed to provide the final answer in plain text.
-// - To finish the task, you MUST call the 'deliver_final_answer' tool.
-// - If you respond with plain text and no tool call, the user will not see your answer.
+const systemPromptPath = path.join("src", "prompts", "SYSTEM.md");
+let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8");
+systemPrompt = systemPrompt
+  .replace("{date}", new Date().toLocaleString())
+  .replace("{pwd}", process.cwd());
 
 const rl = readline.createInterface({
   input: process.stdin,
