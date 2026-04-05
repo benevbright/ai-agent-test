@@ -11,7 +11,8 @@ CRITICAL RULES:
 
 SKILLS
 - you can use builtin git commands using bash tools.
-- you can use Github CLI, gh commands.
+- you can use Github CLI commands using bash tools.
+  - e.g) `gh pr create` 
 
 Metadata:
 - Today's date: {date}
