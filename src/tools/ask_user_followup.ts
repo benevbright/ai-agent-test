@@ -12,7 +12,7 @@ export const askUserFollowup = {
       ),
   }),
   execute: async ({ question }: { question: string }) => {
-    console.log(chalk.yellow(`\nAsking user: ${question}`));
+    console.log(chalk.yellow(`\n[tool calling - ask_user_followup] Asking user: ${question}`));
     return { success: true, output: `Asked user: ${question}` };
   },
 };

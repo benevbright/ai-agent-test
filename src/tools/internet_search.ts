@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { JSDOM } from "jsdom";
 import { assert } from "console";
+import chalk from "chalk";
 
 export const internetSearch = {
   description:
@@ -38,7 +39,7 @@ export const internetSearch = {
 
     const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: searchCount.toString() })}`;
 
-    console.log("[internet_search tool] Search: ", query);
+    console.log(chalk.yellow(`\n[tool calling - internet_search] Search: ${query}`));
     const response = await fetch(url, {
       headers: {
         Accept: "application/json",
@@ -48,7 +49,9 @@ export const internetSearch = {
     });
     if (!response.ok) {
       console.log(
-        `[internet_search tool] ⚠️ Search API error: ${response.status} ${response.statusText}`,
+        chalk.red(
+          `\n[tool calling - internet_search] ⚠️ Search API error: ${response.status} ${response.statusText}`,
+        ),
       );
       return {
         success: false,
@@ -58,7 +61,9 @@ export const internetSearch = {
     const data = await response.json();
     const { results } = data.web || {};
     if (!results || results.length === 0) {
-      console.log("[internet_search tool] ⚠️ No search results found");
+      console.log(
+        chalk.red("[tool calling - internet_search] ⚠️ No search results found"),
+      );
       return {
         success: false,
         error: "No search results found",
@@ -68,7 +73,9 @@ export const internetSearch = {
     const contents = await Promise.all(
       results.map(async (result: any, index: number) => {
         console.log(
-          `[internet_search tool] Result ${index + 1}: ${result.title} - ${result.url}`,
+          chalk.green(
+            `[tool calling - internet_search] Result ${index + 1}: ${result.title} - ${result.url}`,
+          ),
         );
         const html = await fetch(result.url, {
           headers: {
