@@ -7,6 +7,7 @@ A lightweight, extensible agentic workflow system built with TypeScript and the 
 - **Agentic Architecture**: Multi-iteration agent loop with tool calling capabilities
 - **Local LLM Support**: Connect to any OpenAI-compatible API endpoint or Google Generative AI
 - **Extensible Tools**: Built-in tools for file operations, bash execution, web search, and more
+  - See [src/tools/](./src/tools/) for all available tools
 - **Interactive CLI**: Real-time chat interface with streaming responses
 - **Debug Mode**: Inspect conversation history and token usage
 - **Logging**: Session logging to track agent behavior and progress
@@ -34,6 +35,21 @@ API_KEY=dummy
 MODEL_NAME=qwen3-coder-next
 BRAVE_API_KEY=your_brave_api_key_here
 ```
+
+## 🛠️ Available Tools
+
+The system provides the following built-in tools (see [src/tools/](./src/tools/) for implementation details):
+
+| Tool | Description |
+|------|-------------|
+| `ask_user_followup` | Ask user for additional information or clarification |
+| `record_progress` | Track and update workflow progress |
+| `bash` | Execute shell commands and capture output |
+| `internet_search` | Search the web using Brave Search API |
+| `read` | Read file contents |
+| `write` | Write content to files |
+| `edit` | Make precise edits to existing files |
+| `compilation_check` | Run compilation checks (e.g., TypeScript, linting) |
 
 ## 🚀 Usage
 
