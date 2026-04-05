@@ -3,6 +3,8 @@ import { recordProgress } from "./record_progress.js";
 import { bashTool } from "./bash.js";
 import { internetSearch } from "./internet_search.js";
 import { readTool } from "./read.js";
+import { writeTool } from "./write.js";
+import { editTool } from "./edit.js";
 import type { ToolSet } from "ai";
 
 export const toolNames = {
@@ -11,6 +13,8 @@ export const toolNames = {
   bash: "bash",
   internetSearch: "internet_search",
   read: "read",
+  write: "write",
+  edit: "edit",
 } as const;
 
 export const tools = {
@@ -21,4 +25,6 @@ export const tools = {
   [toolNames.bash]: bashTool,
   [toolNames.internetSearch]: internetSearch,
   [toolNames.read]: readTool,
+  [toolNames.write]: writeTool,
+  [toolNames.edit]: editTool,
 } as const satisfies ToolSet;
