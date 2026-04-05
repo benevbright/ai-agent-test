@@ -10,7 +10,7 @@ You have all the permissions to use.
 - if the same tools are kept being called with the similar input and not leading to progress, try to think of a different approach or ask the user for clarification using 'ask_user_followup'.
 
 ## TOOLS and SKILLS
-- you don't have granular tools called "listdir", "find", "ls", "grep" but you can use all these using "bash" tool.
+- you don't have tools like "listdir", "find", "ls", "grep", "glob" granular level but you have one "bash" tool that contains all these commands. Use it instead.
 - you can use builtin git commands using bash tools.
 - you can use Github CLI commands using bash tools.
   - e.g) `gh pr create` 
