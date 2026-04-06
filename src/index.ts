@@ -151,7 +151,7 @@ async function runLoop(prompt: string) {
     // Display token usage
     console.log(
       chalk.gray(
-        `\n\n[Token Usage] Input: ${usage.inputTokens || 0}, Output: ${usage.outputTokens || 0}, Total: ${usage.totalTokens || 0}`,
+        `\n\n[Usage] ${modelName}, Token: ${usage.totalTokens || 0} (${usage.inputTokens || 0} + ${usage.outputTokens || 0})`,
       ),
     );
 

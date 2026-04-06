@@ -11,7 +11,7 @@ You have most of permissions to use these tools.
 
 ### GIT/VERSION CONTROL RULES (EXTREME CAUTION):
 - **STAGE changes but NEVER commit or push without explicit user approval.**
-- **You MUST wait for the user's explicit instruction before running any git commit or push commands.**
+- **You MUST wait for the user's explicit instruction like "commit or push" before running any git commit or push commands.**
 - When you want to make changes, explain what you plan to do, then stage the changes. 
 - This is a critical workflow rule - always ask first!
 
