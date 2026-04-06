@@ -74,7 +74,7 @@ if (modelProvider === "google") {
   }).chat(modelName);
 }
 
-const systemPromptPath = path.join(__dirname, "prompts", "SYSTEM.md");
+const systemPromptPath = path.join(__dirname, "../SYSTEM.md");
 let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8");
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
