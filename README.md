@@ -49,7 +49,7 @@ Create a JSON configuration file at `~/.ai/models.json` with an array of model c
   {
     "modelApiType": "openai",
     "modelName": "qwen3-coder-next",
-    "apiBaseUrl": "http://localhost:8090/v1",
+    "apiBaseUrl": "http://localhost:1234/v1",
     "apiKey": "dummy",
     "braveApiKey": "your_brave_api_key_here"
   },
