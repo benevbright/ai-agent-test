@@ -1,3 +1,11 @@
 #!/usr/bin/env node
 
+// Pass command-line arguments to the main module
+import { argv } from 'process';
+
+// Set AI_MODEL_INDEX environment variable if provided as first argument
+if (argv[2]) {
+  process.env.AI_MODEL_INDEX = argv[2];
+}
+
 import('../dist/index.js');

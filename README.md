@@ -63,17 +63,17 @@ Create a JSON configuration file at `~/.ai/models.json` with an array of model c
 ]
 ```
 
-Set the environment variable in your terminal before running (Default to 0):
-
+Start CLI with selected model (default is the first model in the array):
 ```bash
-export AI_MODEL_INDEX=0  # Use the first model in models.json (default)
-npx tsx src/index.ts
-```
+# option 1
+ai 1 # to select the second model (Google Gemini)
 
-Or set it inline:
+# option 2
+export AI_MODEL_INDEX=1
+ai
 
-```bash
-AI_MODEL_INDEX=0 npx tsx src/index.ts
+# option 3
+AI_MODEL_INDEX=1 ai
 ```
 
 ### CLI Commands
