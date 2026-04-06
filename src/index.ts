@@ -40,6 +40,7 @@ const systemPromptPath = path.join("src", "prompts", "SYSTEM.md");
 let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8");
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
+
   .replace("{pwd}", process.cwd());
 
 const rl = readline.createInterface({

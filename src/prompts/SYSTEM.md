@@ -29,5 +29,5 @@ You have most of permissions to use these tools.
 - **compilation_check**: Run compilation check commands (e.g., `npx tsc --noEmit` for TypeScript, `npm run lint` for JavaScript) to verify code quality and catch errors before committing. This helps ensure changes don't break the build.
 
 ### Metadata:
-- Today's date: {date}
+- Session start: {date}
 - Current project: {pwd}.
