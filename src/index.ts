@@ -141,40 +141,66 @@ async function runLoop(prompt: string) {
       system: systemPrompt,
     });
 
-    const assistantContent: any[] = [];
-
     let fullText = "";
+    const toolCallsCollected: any[] = [];
+    const toolResultContent: ToolContent = [];
 
-    for await (const part of res.textStream) {
+    for await (const part of res.fullStream) {
       if (interruptRequested) {
         cleanupEscListener();
         logToFile("=== break loop: user interrupted with ESC key ===");
         return;
       }
 
-      if (part) {
+      if (part.type === "text-delta") {
         if (!fullText) {
           process.stdout.write(chalk.cyan("\nAssistant: "));
         }
-        process.stdout.write(part);
-        fullText += part;
+        process.stdout.write(part.text);
+        fullText += part.text;
+      } else if (part.type === "tool-call") {
+        toolCallsCollected.push({
+          type: "tool-call",
+          toolCallId: part.toolCallId,
+          toolName: part.toolName,
+          input: part.input,
+        });
+      } else if (part.type === "tool-result") {
+        const output = (part as any).output;
+        if (output && output.success) {
+          toolResultContent.push({
+            type: "tool-result",
+            toolCallId: part.toolCallId,
+            toolName: part.toolName,
+            output: {
+              type: "text",
+              value:
+                output.output +
+                `\n\n[Tool execution metadata: ${JSON.stringify(output.metadata || {})}]`,
+            },
+          });
+        } else {
+          toolResultContent.push({
+            type: "tool-result",
+            toolCallId: part.toolCallId,
+            toolName: part.toolName,
+            output: {
+              type: "text",
+              value: output?.stderr || output?.error || "Unknown error",
+            },
+          });
+        }
       }
     }
 
+    const usage = await res.usage;
+
+    const assistantContent: any[] = [];
     if (fullText) {
       assistantContent.push({ type: "text", text: fullText });
     }
-    const toolResults = await res.toolResults;
-    const toolCalls = await res.toolCalls;
-    const usage = await res.usage;
-
-    for (const toolCall of toolCalls || []) {
-      assistantContent.push({
-        type: "tool-call",
-        toolCallId: toolCall.toolCallId,
-        toolName: toolCall.toolName,
-        input: toolCall.input,
-      });
+    for (const toolCall of toolCallsCollected) {
+      assistantContent.push(toolCall);
     }
 
     if (assistantContent.length > 0) {
@@ -183,34 +209,6 @@ async function runLoop(prompt: string) {
         content: assistantContent,
       });
       logToFile("Added assistant message with content");
-    }
-
-    const toolResultContent: ToolContent = [];
-    for (const toolResult of toolResults || []) {
-      const output = (toolResult as any).output;
-      if (output && output.success) {
-        toolResultContent.push({
-          type: "tool-result",
-          toolCallId: toolResult.toolCallId,
-          toolName: toolResult.toolName,
-          output: {
-            type: "text",
-            value:
-              output.output +
-              `\n\n[Tool execution metadata: ${JSON.stringify(output.metadata || {})}]`,
-          },
-        });
-      } else {
-        toolResultContent.push({
-          type: "tool-result",
-          toolCallId: toolResult.toolCallId,
-          toolName: toolResult.toolName,
-          output: {
-            type: "text",
-            value: output.stderr || output.error || "Unknown error",
-          },
-        });
-      }
     }
 
     if (toolResultContent.length > 0) {
@@ -229,23 +227,23 @@ async function runLoop(prompt: string) {
     );
 
     logToFile(
-      `Iteration complete. Tool calls: ${toolCalls?.length || 0}, Tool results: ${toolResultContent.length}`,
+      `Iteration complete. Tool calls: ${toolCallsCollected.length}, Tool results: ${toolResultContent.length}`,
     );
     logMessages(messages);
-    if (toolCalls.length === 0) {
+    if (toolCallsCollected.length === 0) {
       logToFile("=== break loop: no tool calls ===");
       break;
     }
-    const progressRes = toolResults.find(
-      (result) => result.toolName === toolNames.recordProgress,
+    const progressRes = toolResultContent.find(
+      (result) => (result as any).toolName === toolNames.recordProgress,
     );
-    if (progressRes && progressRes.output === 100) {
+    if (progressRes && (progressRes as any).output?.value === 100) {
       console.log("\nTask completed with 100% progress!");
       logToFile("=== break loop: task completed with 100% progress ===");
       break;
     }
-    const followUpRes = toolResults.find(
-      (result) => result.toolName === toolNames.askUserFollowup,
+    const followUpRes = toolResultContent.find(
+      (result) => (result as any).toolName === toolNames.askUserFollowup,
     );
     if (followUpRes) {
       console.log(chalk.yellow("\n--- Waiting for user input ---"));
