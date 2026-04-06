@@ -46,11 +46,15 @@ systemPrompt = systemPrompt
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
+  terminal: false,
 });
 
-function askQuestion(prompt: string): Promise<string> {
+let interruptRequested = false;
+
+async function askQuestion(prompt: string): Promise<string> {
   return new Promise((resolve) => {
-    rl.question(prompt, (answer: string) => resolve(answer));
+    process.stdout.write(prompt);
+    rl.once("line", (answer: string) => resolve(answer));
   });
 }
 
@@ -63,6 +67,35 @@ async function runLoop(prompt: string) {
   });
   logToFile(`User prompt: ${prompt.substring(0, 200)}...`);
 
+  // Reset interrupt flag
+  interruptRequested = false;
+
+  // Set up ESC key listener
+  const setupEscListener = () => {
+    if (process.stdin.isTTY) {
+      process.stdin.setRawMode(true);
+      process.stdin.resume();
+      process.stdin.on("data", onKeyPress);
+    }
+  };
+
+  const cleanupEscListener = () => {
+    if (process.stdin.isTTY) {
+      process.stdin.removeListener("data", onKeyPress);
+      process.stdin.setRawMode(false);
+    }
+  };
+
+  const onKeyPress = (key: Buffer) => {
+    // ESC key is 0x1b
+    if (key[0] === 0x1b) {
+      console.log(chalk.magenta("\n\n[Interrupt requested]"));
+      interruptRequested = true;
+    }
+  };
+
+  setupEscListener();
+
   while (true) {
     const res = await streamText({
       model,
@@ -71,11 +104,17 @@ async function runLoop(prompt: string) {
       system: systemPrompt,
     });
 
-    // Build assistant message combining text and tool calls
     const assistantContent: any[] = [];
 
     let fullText = "";
+
     for await (const part of res.textStream) {
+      if (interruptRequested) {
+        cleanupEscListener();
+        logToFile("=== break loop: user interrupted with ESC key ===");
+        return;
+      }
+
       if (part) {
         if (!fullText) {
           console.log(chalk.cyan("\nAssistant: "));
@@ -93,7 +132,6 @@ async function runLoop(prompt: string) {
     const usage = await res.usage;
 
     for (const toolCall of toolCalls || []) {
-      // console.log("[appended tool call]", toolCall.toolName, toolCall.input);
       assistantContent.push({
         type: "tool-call",
         toolCallId: toolCall.toolCallId,
@@ -110,12 +148,10 @@ async function runLoop(prompt: string) {
       logToFile("Added assistant message with content");
     }
 
-    // Append tool results
     const toolResultContent: ToolContent = [];
     for (const toolResult of toolResults || []) {
       const output = (toolResult as any).output;
       if (output && output.success) {
-        // console.log("[appended tool result]", toolResult.toolName);
         toolResultContent.push({
           type: "tool-result",
           toolCallId: toolResult.toolCallId,
@@ -128,7 +164,6 @@ async function runLoop(prompt: string) {
           },
         });
       } else {
-        // console.log("[appended FAILED tool result]", toolResult.toolName);
         toolResultContent.push({
           type: "tool-result",
           toolCallId: toolResult.toolCallId,
@@ -180,12 +215,19 @@ async function runLoop(prompt: string) {
       logToFile("=== break loop: asked user followup ===");
       break;
     }
+    if (interruptRequested) {
+      logToFile("=== break loop: user interrupted with ESC key ===");
+      break;
+    }
   }
+
+  cleanupEscListener();
 }
 
 async function main() {
   logToFile("\n========== Session Started ==========");
   console.log(chalk.cyan("AI Agent Ready!"));
+  console.log(chalk.cyan("Press ESC during response to interrupt"));
   console.log(chalk.cyan("==============================\n"));
   while (true) {
     const userPrompt = await askQuestion("\nPrompt: ");
