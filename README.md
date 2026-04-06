@@ -20,21 +20,34 @@ A lightweight, extensible agentic workflow system built with TypeScript and the 
 
 ```bash
 npm install
-cp .env.example .env
-# Edit .env with your configuration
+# Create ~/.ai/models.json with your configuration (see Configuration section below)
 ```
 
 ## ⚙️ Configuration
 
-Create a `.env` file with the following variables:
+Create a JSON configuration file at `~/.ai/models.json` with the following structure:
 
-```env
-MODEL_API_TYPE=openai
-API_BASE_URL=http://localhost:1234/v1
-API_KEY=dummy
-MODEL_NAME=qwen3-coder-next
-BRAVE_API_KEY=your_brave_api_key_here
+```json
+[
+  {
+    "modelApiType": "openai",
+    "modelName": "qwen3-coder-next",
+    "apiBaseUrl": "http://localhost:8090/v1",
+    "apiKey": "dummy",
+    "braveApiKey": "your_brave_api_key_here"
+  }
+]
 ```
+
+### Configuration Options
+
+- `modelApiType`: Either `openai` or `google`
+- `modelName`: The name of the model to use
+- `apiBaseUrl`: The base URL for the API endpoint (e.g., `http://localhost:8090/v1` for LM Studio)
+- `apiKey`: Your API key (use `dummy` for local LLM servers)
+- `braveApiKey`: Optional API key for web search functionality
+
+The application uses the first model configuration from the array.
 
 ## 🚀 Usage
 
