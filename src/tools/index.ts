@@ -5,7 +5,7 @@ import { internetSearch } from "./internet_search.js";
 import { readTool } from "./read.js";
 import { writeTool } from "./write.js";
 import { editTool } from "./edit.js";
-import { compilationCheckTool } from "./compilationCheck.js";
+import { compilationCheckTool } from "./compilation_check.js";
 import type { ToolSet } from "ai";
 
 export const toolNames = {
