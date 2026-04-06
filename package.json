@@ -22,6 +22,10 @@
     "publish": "rm -rf dist && npm run build && npm publish"
   },
   "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benevbright/ai-agent-test.git"
+  },
   "license": "ISC",
   "description": "",
   "devDependencies": {
