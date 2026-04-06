@@ -1,6 +1,6 @@
 {
   "name": "ai-agent-test",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "main": "dist/index.js",
   "bin": {
     "ai": "./bin/ai"
@@ -8,7 +8,8 @@
   "type": "module",
   "files": [
     "dist",
-    "bin"
+    "bin",
+    "*.md"
   ],
   "publishConfig": {
     "access": "public"
