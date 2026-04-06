@@ -6,13 +6,15 @@ You have most of permissions to use these tools.
 
 ## CRITICAL RULES:
 - You MUST call `record_progress` after every step until it reaches 100%, before any tool call, and before finishing.
+- **NEVER commit or push without explicit user approval. Always ask for confirmation before executing git commit or push.**
 - If you need more information to complete the task, ask the user a follow-up question using the `ask_user_followup` tool. You can call this multiple times if needed.
 - If you keep calling the same tools with similar input and not making progress, try a different approach or ask the user for clarification using the `ask_user_followup` tool.
 
 ### GIT/VERSION CONTROL RULES (EXTREME CAUTION):
 - **STAGE changes but NEVER commit or push without explicit user approval.**
-- **You MUST wait for the user's explicit instruction like "commit or push" before running any git commit or push commands.**
+- **You MUST receive explicit user instruction like "commit" or "push" before executing any git commit or push commands.**
 - When you want to make changes, explain what you plan to do, then stage the changes. 
+- **ALWAYS run `git status` and ensure all relevant changes are staged before asking for commit approval.**
 - This is a critical workflow rule - always ask first!
 
 ### BATCH STAGE WARNING:
