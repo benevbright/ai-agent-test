@@ -1,26 +1,46 @@
 import { streamText, type ModelMessage, type ToolContent } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
-import dotenv from "dotenv";
 import * as readline from "readline";
 import { toolNames, tools } from "./tools/index.js";
-import { assert } from "console";
 import chalk from "chalk";
-import { logToFile, logMessages } from "./utils/system.js";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import type { LanguageModelV3 } from "@ai-sdk/provider";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
+import { readFileSync } from "fs";
+import { homedir } from "os";
+import { join, dirname } from "path";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { logToFile, logMessages } from "./utils/system.js";
 
-dotenv.config();
+// Get the directory of this module (works with ES modules)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
-const baseUrl = process.env.API_BASE_URL || "";
-const apiKey = process.env.API_KEY || "";
-const modelName = process.env.MODEL_NAME || "";
-const modelProvider = process.env.MODEL_API_TYPE || "openai";
+// Load configuration from ~/.ai/models.json
+const modelsFile = join(homedir(), ".ai", "models.json");
+let config: {
+  modelApiType: "openai" | "google";
+  modelName: string;
+  apiBaseUrl: string;
+  apiKey: string;
+};
+try {
+  const fileContent = readFileSync(modelsFile, "utf-8");
+  const models = JSON.parse(fileContent);
+  config = models[0]; // Take the first model from the array
+} catch (error) {
+  throw new Error(
+    `Failed to load configuration from ${modelsFile}: ${(error as Error).message}`,
+  );
+}
 
-assert(baseUrl, "API_BASE_URL is not defined in .env file");
-assert(apiKey, "API_KEY is not defined in .env file");
-assert(modelName, "MODEL_NAME is not defined in .env file");
+const {
+  modelApiType: modelProvider,
+  modelName,
+  apiBaseUrl: baseUrl,
+  apiKey,
+} = config;
 
 let model: LanguageModelV3;
 
@@ -36,11 +56,10 @@ if (modelProvider === "google") {
   }).chat(modelName);
 }
 
-const systemPromptPath = path.join("src", "prompts", "SYSTEM.md");
+const systemPromptPath = path.join(__dirname, "prompts", "SYSTEM.md");
 let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8");
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
-
   .replace("{pwd}", process.cwd());
 
 const rl = readline.createInterface({
@@ -226,13 +245,13 @@ async function runLoop(prompt: string) {
 
 async function main() {
   logToFile("\n========== Session Started ==========");
-  console.log(chalk.cyan("AI Agent Ready!"));
+  console.log(chalk.cyan(`AI Agent Ready at ${process.cwd()}!\n`));
   console.log(
     chalk.cyan("interrupt: ESC, exit: 'exit' or 'quit', debug: 'debug [num]'"),
   );
   console.log(
     chalk.cyan(
-      "===================================================================\n",
+      "============================================================\n",
     ),
   );
   while (true) {
