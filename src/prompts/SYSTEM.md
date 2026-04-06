@@ -15,6 +15,12 @@ You have most of permissions to use these tools.
 - When you want to make changes, explain what you plan to do, then stage the changes. 
 - This is a critical workflow rule - always ask first!
 
+### BATCH STAGE WARNING:
+- If you are about to stage MORE THAN 10 files at once, STOP and ask for user confirmation first.
+- Large batch stages often indicate unintended file additions (e.g., /dist folder, build artifacts, node_modules).
+- Common problematic folders that should NEVER be committed: /dist, /build, /node_modules, *.log, .DS_Store, etc.
+- Always check what files are being staged before proceeding!
+
 ## TOOLS and SKILLS
 - You don't have granular-level tools like "listdir", "find", "ls", "grep", "glob", but you have one `bash` tool that contains all these commands. Use it instead.
 - You can use built-in git commands using bash tools.
