@@ -7,19 +7,15 @@ import type { LanguageModelV3 } from "@ai-sdk/provider";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync } from "fs";
 import { homedir } from "os";
 import { join, dirname } from "path";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { logToFile, logMessages } from "./utils/system.js";
-import dotenv from "dotenv";
 
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-// Load .env file from current directory
-dotenv.config();
 
 // Load configuration from ~/.ai/models.json
 const modelsFile = join(homedir(), ".ai", "models.json");
@@ -32,16 +28,29 @@ let config: {
 try {
   const fileContent = readFileSync(modelsFile, "utf-8");
   const models = JSON.parse(fileContent);
-  // Get the model index from .env file, default to 0
   const modelIndex = parseInt(process.env.AI_MODEL_INDEX || "0", 10);
-  if (modelIndex < 0 || modelIndex >= models.length) {
-    throw new Error(`AI_MODEL_INDEX ${modelIndex} is out of range. Valid indices are 0 to ${models.length - 1}.`);
-  }
-  config = models[modelIndex]; // Use the configured model index
+  config = models[modelIndex];
 } catch (error) {
-  throw new Error(
-    `Failed to load configuration from ${modelsFile}: ${(error as Error).message}`,
+  console.error(
+    chalk.red(
+      `Failed to load configuration from ${modelsFile}: ${(error as Error).message}`,
+    ),
   );
+  const sampleConfig = [
+    {
+      modelApiType: "openai (openai or google)",
+      modelName: "gpt-4o",
+      apiBaseUrl: "https://api.openai.com/v1",
+      apiKey: "your-api-key-here",
+    },
+  ];
+  console.log(
+    chalk.yellow(
+      "\nPlease create a ~/.ai/models.json file with the following format:",
+    ),
+  );
+  console.log(chalk.yellow(JSON.stringify(sampleConfig, null, 2)));
+  process.exit(1);
 }
 
 const {

@@ -25,16 +25,6 @@ npm install
 
 ## ⚙️ Configuration
 
-### Model Selection
-
-The application supports multiple models and uses the `AI_MODEL_INDEX` environment variable to select which model configuration to use from `~/.ai/models.json`. The default index is `0`.
-
-Create a `.env` file in your project root:
-
-```bash
-AI_MODEL_INDEX=0  # Use the first model in models.json (default)
-```
-
 ### Model Configuration
 
 Create a JSON configuration file at `~/.ai/models.json` with an array of model configurations:
@@ -52,28 +42,23 @@ Create a JSON configuration file at `~/.ai/models.json` with an array of model c
     "modelApiType": "google",
     "modelName": "gemini-2.5-flash",
     "apiBaseUrl": "https://generativelanguage.googleapis.com/v1beta",
-    "apiKey": "your_google_api_key_here"
+    "apiKey": "your_google_api_key_here",
+    "braveApiKey": "your_brave_api_key_here"
   }
 ]
 ```
 
-### Configuration Options
-
-- `modelApiType`: Either `openai` or `google`
-- `modelName`: The name of the model to use
-- `apiBaseUrl`: The base URL for the API endpoint (e.g., `http://localhost:8090/v1` for LM Studio)
-- `apiKey`: Your API key (use `dummy` for local LLM servers)
-- `braveApiKey`: Optional API key for web search functionality
-
-### Example Setup
-
-1. Create `~/.ai/models.json` with your model configurations
-2. Set `AI_MODEL_INDEX` in `.env` to select which model to use (0-based index)
-
-## 🚀 Usage
+Set the environment variable in your terminal before running (Default to 0):
 
 ```bash
-npx tsx src/index.ts  # Start the agent
+export AI_MODEL_INDEX=0  # Use the first model in models.json (default)
+npx tsx src/index.ts
+```
+
+Or set it inline:
+
+```bash
+AI_MODEL_INDEX=0 npx tsx src/index.ts
 ```
 
 ### CLI Commands
@@ -81,3 +66,4 @@ npx tsx src/index.ts  # Start the agent
 - Type your prompt and press Enter to start the agent loop
 - `exit` or `quit` to terminate the session
 - `debug <n>` to view last n messages (or all if no number provided)
+- ESC key to interrupt the current agent iteration
