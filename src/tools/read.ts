@@ -31,13 +31,15 @@ export const readTool = {
     limit?: number;
   }) => {
     console.log(
-      chalk.yellow(`\n[tool calling - read] Reading file: ${filePath}`),
+      chalk.yellow(
+        `\n[tool calling - read] Reading file: ${filePath} (offset: ${offset}, limit: ${limit ?? "none"})`,
+      ),
     );
 
     try {
       // Resolve the path relative to current working directory
       const fullPath = path.resolve(filePath);
-      
+
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
@@ -50,7 +52,9 @@ export const readTool = {
 
       // Calculate start and end indices
       const startIndex = Math.max(0, offset - 1);
-      const endIndex = limit ? Math.min(lines.length, startIndex + limit) : lines.length;
+      const endIndex = limit
+        ? Math.min(lines.length, startIndex + limit)
+        : lines.length;
 
       if (startIndex >= lines.length) {
         return {
@@ -78,7 +82,9 @@ export const readTool = {
       };
     } catch (error: any) {
       console.error(
-        chalk.red(`[tool calling - read] ⚠️ Failed to read file: ${error.message}`),
+        chalk.red(
+          `[tool calling - read] ⚠️ Failed to read file: ${error.message}`,
+        ),
       );
       return {
         success: false,

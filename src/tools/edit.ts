@@ -13,12 +13,18 @@ export const editTool = {
     "Make precise, targeted edits to existing files. Replace specific text patterns without rewriting the entire file. Use this for modifications when you want to keep most of the file intact and only change specific lines or sections.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to edit"),
-    edits: z.array(
-      z.object({
-        oldText: z.string().describe("The exact text to find and replace"),
-        newText: z.string().describe("The new text to insert"),
-      }),
-    ).describe("Array of edits, each containing oldText and newText for exact match replacement"),
+    edits: z
+      .array(
+        z.object({
+          oldText: z
+            .string()
+            .describe("The exact text for JS's `replace()` function"),
+          newText: z.string().describe("The new text to insert"),
+        }),
+      )
+      .describe(
+        "Array of edits, each containing oldText and newText for exact match replacement",
+      ),
   }),
   execute: async ({
     path: filePath,
@@ -28,12 +34,14 @@ export const editTool = {
     edits: Edit[];
   }) => {
     console.log(
-      chalk.yellow(`\n[tool calling - edit] Editing file: ${filePath}`),
+      chalk.yellow(
+        `\n[tool calling - edit] Editing file: ${filePath} (edits: ${edits.length})`,
+      ),
     );
 
     try {
       const fullPath = path.resolve(filePath);
-      
+
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
@@ -47,18 +55,20 @@ export const editTool = {
       for (const edit of edits) {
         const existingContent = content;
         content = content.replace(edit.oldText, edit.newText);
-        
+
         if (content !== existingContent) {
           editsApplied++;
         } else {
           console.warn(
-            chalk.yellow(`[tool calling - edit] ⚠️ oldText not found in file: ${edit.oldText.substring(0, 50)}...`),
+            chalk.yellow(
+              `[tool calling - edit] ⚠️ oldText not found in file: ${edit.oldText.substring(0, 50)}...`,
+            ),
           );
         }
       }
 
       fs.writeFileSync(fullPath, content, "utf-8");
-      
+
       return {
         success: true,
         output: `File "${fullPath}" edited successfully.\nEdits applied: ${editsApplied} out of ${edits.length}`,
@@ -70,7 +80,9 @@ export const editTool = {
       };
     } catch (error: any) {
       console.error(
-        chalk.red(`[tool calling - edit] ⚠️ Failed to edit file: ${error.message}`),
+        chalk.red(
+          `[tool calling - edit] ⚠️ Failed to edit file: ${error.message}`,
+        ),
       );
       return {
         success: false,

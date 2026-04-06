@@ -77,7 +77,7 @@ async function runLoop(prompt: string) {
     for await (const part of res.textStream) {
       if (part) {
         if (!fullText) {
-          console.log("\nAssistant: ");
+          console.log(chalk.cyan("\nAssistant: "));
         }
         process.stdout.write(part);
         fullText += part;
@@ -184,6 +184,8 @@ async function runLoop(prompt: string) {
 
 async function main() {
   logToFile("\n========== Session Started ==========");
+  console.log(chalk.cyan("AI Agent Ready!"));
+  console.log(chalk.cyan("==============================\n"));
   while (true) {
     const userPrompt = await askQuestion("\nPrompt: ");
 
