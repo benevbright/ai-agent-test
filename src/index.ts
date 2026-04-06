@@ -117,7 +117,7 @@ async function runLoop(prompt: string) {
 
       if (part) {
         if (!fullText) {
-          console.log(chalk.cyan("\nAssistant: "));
+          process.stdout.write(chalk.cyan("Assistant: "));
         }
         process.stdout.write(part);
         fullText += part;
@@ -227,8 +227,14 @@ async function runLoop(prompt: string) {
 async function main() {
   logToFile("\n========== Session Started ==========");
   console.log(chalk.cyan("AI Agent Ready!"));
-  console.log(chalk.cyan("Press ESC during response to interrupt"));
-  console.log(chalk.cyan("==============================\n"));
+  console.log(
+    chalk.cyan("interrupt: ESC, exit: 'exit' or 'quit', debug: 'debug [num]'"),
+  );
+  console.log(
+    chalk.cyan(
+      "===================================================================\n",
+    ),
+  );
   while (true) {
     const userPrompt = await askQuestion("\nPrompt: ");
 
