@@ -29,7 +29,7 @@ cp .env.example .env
 Create a `.env` file with the following variables:
 
 ```env
-MODEL_PROVIDER=openai
+MODEL_API_TYPE=openai
 API_BASE_URL=http://localhost:1234/v1
 API_KEY=dummy
 MODEL_NAME=qwen3-coder-next

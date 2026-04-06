@@ -16,7 +16,7 @@ dotenv.config();
 const baseUrl = process.env.API_BASE_URL || "";
 const apiKey = process.env.API_KEY || "";
 const modelName = process.env.MODEL_NAME || "";
-const modelProvider = process.env.MODEL_PROVIDER || "openai";
+const modelProvider = process.env.MODEL_API_TYPE || "openai";
 
 assert(baseUrl, "API_BASE_URL is not defined in .env file");
 assert(apiKey, "API_KEY is not defined in .env file");
