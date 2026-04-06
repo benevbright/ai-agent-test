@@ -117,7 +117,7 @@ async function runLoop(prompt: string) {
 
       if (part) {
         if (!fullText) {
-          process.stdout.write(chalk.cyan("Assistant: "));
+          process.stdout.write(chalk.cyan("\nAssistant: "));
         }
         process.stdout.write(part);
         fullText += part;
