@@ -18,6 +18,21 @@ A lightweight, extensible agentic workflow system built with TypeScript and the 
 
 ## 📦 Installation
 
+### As a CLI tool (global)
+
+```bash
+npm install -g ai-agent-test
+# Create ~/.ai/models.json with your configuration (see Configuration section below)
+```
+
+Then run:
+
+```bash
+ai
+```
+
+### Development installation
+
 ```bash
 npm install
 # Create ~/.ai/models.json with your configuration (see Configuration section below)
@@ -63,7 +78,9 @@ AI_MODEL_INDEX=0 npx tsx src/index.ts
 
 ### CLI Commands
 
+When installed globally, run `ai` to start the interactive CLI:
+
 - Type your prompt and press Enter to start the agent loop
-- `exit` or `quit` to terminate the session
+- `exit` or `quit` to terminate the session  
 - `debug <n>` to view last n messages (or all if no number provided)
 - ESC key to interrupt the current agent iteration
