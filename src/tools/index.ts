@@ -20,8 +20,6 @@ export const toolNames = {
 } as const;
 
 export const tools = {
-  // Not working as expected. will check again later.
-  // deliver_final_answer: deliverFinalAnswer,
   [toolNames.askUserFollowup]: askUserFollowup,
   [toolNames.recordProgress]: recordProgress,
   [toolNames.bash]: bashTool,
