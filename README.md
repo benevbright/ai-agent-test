@@ -25,7 +25,19 @@ npm install
 
 ## ⚙️ Configuration
 
-Create a JSON configuration file at `~/.ai/models.json` with the following structure:
+### Model Selection
+
+The application supports multiple models and uses the `AI_MODEL_INDEX` environment variable to select which model configuration to use from `~/.ai/models.json`. The default index is `0`.
+
+Create a `.env` file in your project root:
+
+```bash
+AI_MODEL_INDEX=0  # Use the first model in models.json (default)
+```
+
+### Model Configuration
+
+Create a JSON configuration file at `~/.ai/models.json` with an array of model configurations:
 
 ```json
 [
@@ -35,6 +47,12 @@ Create a JSON configuration file at `~/.ai/models.json` with the following struc
     "apiBaseUrl": "http://localhost:8090/v1",
     "apiKey": "dummy",
     "braveApiKey": "your_brave_api_key_here"
+  },
+  {
+    "modelApiType": "google",
+    "modelName": "gemini-2.5-flash",
+    "apiBaseUrl": "https://generativelanguage.googleapis.com/v1beta",
+    "apiKey": "your_google_api_key_here"
   }
 ]
 ```
@@ -47,7 +65,10 @@ Create a JSON configuration file at `~/.ai/models.json` with the following struc
 - `apiKey`: Your API key (use `dummy` for local LLM servers)
 - `braveApiKey`: Optional API key for web search functionality
 
-The application uses the first model configuration from the array.
+### Example Setup
+
+1. Create `~/.ai/models.json` with your model configurations
+2. Set `AI_MODEL_INDEX` in `.env` to select which model to use (0-based index)
 
 ## 🚀 Usage
 
