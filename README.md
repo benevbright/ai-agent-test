@@ -51,14 +51,12 @@ Create a JSON configuration file at `~/.ai/models.json` with an array of model c
     "modelName": "qwen3-coder-next",
     "apiBaseUrl": "http://localhost:1234/v1",
     "apiKey": "dummy",
-    "braveApiKey": "your_brave_api_key_here"
   },
   {
     "modelApiType": "google",
     "modelName": "gemini-2.5-flash",
     "apiBaseUrl": "https://generativelanguage.googleapis.com/v1beta",
     "apiKey": "your_google_api_key_here",
-    "braveApiKey": "your_brave_api_key_here"
   }
 ]
 ```
@@ -75,6 +73,10 @@ ai
 # option 3
 AI_MODEL_INDEX=1 ai
 ```
+
+### Additional Environment Variables
+
+- `BRAVE_API_KEY`: (Required) API key for Brave Search for the internet search tool
 
 ### CLI Commands
 
