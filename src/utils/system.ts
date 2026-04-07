@@ -1,9 +1,10 @@
 import * as fs from "fs";
 import path from "path";
 import type { ModelMessage } from "ai";
+import { homedir } from "os";
 
 // Log file setup
-const logDir = path.join(require("os").homedir(), ".ai", "logs");
+const logDir = path.join(homedir(), ".ai", "logs");
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
