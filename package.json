@@ -19,7 +19,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky",
     "lint": "oxlint . --ignore-pattern dist/",
-    "publish": "rm -rf dist && npm run build && npm publish"
+    "pub": "rm -rf dist && npm run build && npm publish"
   },
   "author": "",
   "repository": {
