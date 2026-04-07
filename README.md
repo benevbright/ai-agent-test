@@ -10,7 +10,7 @@ A lightweight, extensible agentic workflow system built with TypeScript and the 
   - See [src/tools/](./src/tools/) for all available tools
 - **Interactive CLI**: Real-time chat interface with streaming responses
 - **Debug Mode**: Inspect conversation history and token usage
-- **Logging**: Session logging to track agent behavior and progress
+- **Logging**: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress
 
 ## 🛠️ Prerequisites
 
