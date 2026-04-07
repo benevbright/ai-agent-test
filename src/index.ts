@@ -260,7 +260,7 @@ async function runLoop(prompt: string) {
 }
 
 async function main() {
-  logToFile("\n========== Session Started ==========");
+  logToFile(`\n========== Session Started ========== pwd: ${process.cwd()}`);
   console.log(chalk.cyan(`AI Agent Ready at ${process.cwd()}!\n`));
   console.log(
     chalk.cyan("interrupt: ESC, exit: 'exit' or 'quit', debug: 'debug [num]'"),
