@@ -259,12 +259,84 @@ async function runLoop(prompt: string) {
   cleanupEscListener();
 }
 
+async function checkNpmUpdate(): Promise<{
+  show: boolean;
+  currentVersion: string;
+  latestVersion: string;
+} | null> {
+  try {
+    const { execSync } = await import("child_process");
+
+    // Get globally installed ai-agent-test version
+    const output = execSync("npm ls -g --json 2>/dev/null", {
+      encoding: "utf-8",
+    });
+    const data = JSON.parse(output);
+
+    // Navigate to ai-agent-test in the global npm tree
+    const aiAgentTest = data?.dependencies?.["ai-agent-test"];
+    if (!aiAgentTest) {
+      return null;
+    }
+
+    const currentVersion = aiAgentTest.version;
+
+    // Fetch latest version from npm registry
+    const response = await fetch(
+      "https://registry.npmjs.org/ai-agent-test/latest",
+    );
+    if (!response.ok) {
+      return null;
+    }
+    const latestData = (await response.json()) as { version: string };
+    const latestVersion = latestData.version;
+
+    // Simple version comparison
+    const currentParts = currentVersion.split(".").map(Number);
+    const latestParts = latestVersion.split(".").map(Number);
+
+    let needsUpdate = false;
+    for (
+      let i = 0;
+      i < Math.max(currentParts.length, latestParts.length);
+      i++
+    ) {
+      const current = currentParts[i] || 0;
+      const latest = latestParts[i] || 0;
+      if (latest > current) {
+        needsUpdate = true;
+        break;
+      }
+    }
+
+    return needsUpdate ? { show: true, currentVersion, latestVersion } : null;
+  } catch (error) {
+    return null;
+  }
+}
+
 async function main() {
   logToFile(`\n========== Session Started ========== pwd: ${process.cwd()}`);
   console.log(chalk.cyan(`AI Agent Ready at ${process.cwd()}!\n`));
   console.log(
     chalk.cyan("interrupt: ESC, exit: 'exit' or 'quit', debug: 'debug [num]'"),
   );
+
+  // Check for updates - only show if update is available
+  try {
+    const updateInfo = await checkNpmUpdate();
+    if (updateInfo?.show) {
+      console.log(
+        chalk.cyan(
+          `\nNew version available! Run 'ai update' (${updateInfo.currentVersion} -> ${updateInfo.latestVersion})`,
+        ),
+      );
+    }
+  } catch (error) {
+    // Silent fail - just don't show update message if something goes wrong
+    logToFile(`Failed to check for updates: ${(error as Error).message}`);
+  }
+
   console.log(
     chalk.cyan(
       "============================================================\n",
