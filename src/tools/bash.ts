@@ -24,7 +24,7 @@ export const bashTool = {
   }) => {
     console.log(
       chalk.yellow(
-        `\n[tool calling - bash] Executing command (timeout: ${timeout}s): ${command}`,
+        `\n[TOOL - bash] Executing command (timeout: ${timeout}s): ${command}`,
       ),
     );
     return new Promise((resolve) => {
@@ -57,16 +57,14 @@ export const bashTool = {
           const lines = output.trim().split("\n");
           if (lines.length > 0) {
             console.log(
-              chalk.green(
-                `[tool calling - bash] Output preview: ${lines[0]}...`,
-              ),
+              chalk.green(`[TOOL - bash] Output preview: ${lines[0]}...`),
             );
             if (lines.length > 1) {
-              console.log(chalk.green(`[tool calling - bash] ${lines[1]}...`));
+              console.log(chalk.green(`[TOOL - bash] ${lines[1]}...`));
               if (lines.length > 2) {
                 console.log(
                   chalk.green(
-                    `[tool calling - bash] and ${lines.length - 2} more line(s)`,
+                    `[TOOL - bash] and ${lines.length - 2} more line(s)`,
                   ),
                 );
               }
@@ -78,9 +76,7 @@ export const bashTool = {
           });
         } else {
           console.error(
-            chalk.red(
-              `[tool calling - bash] ⚠️ Command failed with code ${code}`,
-            ),
+            chalk.red(`[TOOL - bash] ⚠️ Command failed with code ${code}`),
           );
           resolve({
             success: false,
@@ -93,9 +89,7 @@ export const bashTool = {
       process.on("error", (error: Error) => {
         markResolved();
         console.error(
-          chalk.red(
-            `[tool calling - bash] ⚠️ Command failed: ${error.message}`,
-          ),
+          chalk.red(`[TOOL - bash] ⚠️ Command failed: ${error.message}`),
         );
         resolve({
           success: false,
@@ -113,7 +107,7 @@ export const bashTool = {
             process.kill("SIGTERM");
             console.error(
               chalk.red(
-                `[tool calling - bash] ⚠️ Command timed out after ${timeout} seconds`,
+                `[TOOL - bash] ⚠️ Command timed out after ${timeout} seconds`,
               ),
             );
             resolve({

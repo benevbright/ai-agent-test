@@ -16,7 +16,7 @@ export const compilationCheckTool = {
     const commandList = Array.isArray(commands) ? commands : [commands];
     console.log(
       chalk.yellow(
-        `\n[tool calling - compilationCheck] Running compilation checks: ${commandList.join(" && ")}`,
+        `\n[TOOL - compilationCheck] Running compilation checks: ${commandList.join(" && ")}`,
       ),
     );
     try {
@@ -28,7 +28,7 @@ export const compilationCheckTool = {
       if (result.includes("error") || result.includes("Error")) {
         console.warn(
           chalk.yellow(
-            `[tool calling - compilationCheck] ⚠️ Compilation check found issues.`,
+            `[TOOL - compilationCheck] ⚠️ Compilation check found issues.`,
           ),
         );
         return {
@@ -44,7 +44,7 @@ export const compilationCheckTool = {
     } catch (error: any) {
       console.error(
         chalk.red(
-          `[tool calling - compilationCheck] ⚠️ Compilation check failed: ${error.message}`,
+          `[TOOL - compilationCheck] ⚠️ Compilation check failed: ${error.message}`,
         ),
       );
       return {

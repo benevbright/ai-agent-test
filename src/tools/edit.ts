@@ -35,7 +35,7 @@ export const editTool = {
   }) => {
     console.log(
       chalk.yellow(
-        `\n[tool calling - edit] Editing file: ${filePath} (edits: ${edits.length})`,
+        `\n[TOOL - edit] Editing file: ${filePath} (edits: ${edits.length})`,
       ),
     );
 
@@ -61,7 +61,7 @@ export const editTool = {
         } else {
           console.warn(
             chalk.yellow(
-              `[tool calling - edit] ⚠️ oldText not found in file: ${edit.oldText.substring(0, 50)}...`,
+              `[TOOL - edit] ⚠️ oldText not found in file: ${edit.oldText.substring(0, 50)}...`,
             ),
           );
         }
@@ -80,9 +80,7 @@ export const editTool = {
       };
     } catch (error: any) {
       console.error(
-        chalk.red(
-          `[tool calling - edit] ⚠️ Failed to edit file: ${error.message}`,
-        ),
+        chalk.red(`[TOOL - edit] ⚠️ Failed to edit file: ${error.message}`),
       );
       return {
         success: false,

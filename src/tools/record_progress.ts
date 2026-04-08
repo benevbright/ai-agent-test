@@ -13,9 +13,7 @@ export const recordProgress = {
   }),
   execute: async ({ progress }: { progress: number }) => {
     console.log(
-      chalk.yellow(
-        `\n[tool calling - record_progress] Current progress: ${progress}%`,
-      ),
+      chalk.yellow(`\n[TOOL - record_progress] Current progress: ${progress}%`),
     );
     return { success: true, output: progress };
   },

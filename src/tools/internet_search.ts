@@ -39,7 +39,7 @@ export const internetSearch = {
 
     const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: searchCount.toString() })}`;
 
-    console.log(chalk.yellow(`\n[tool calling - internet_search] Search: ${query}`));
+    console.log(chalk.yellow(`\n[TOOL - internet_search] Search: ${query}`));
     const response = await fetch(url, {
       headers: {
         Accept: "application/json",
@@ -50,7 +50,7 @@ export const internetSearch = {
     if (!response.ok) {
       console.log(
         chalk.red(
-          `\n[tool calling - internet_search] ⚠️ Search API error: ${response.status} ${response.statusText}`,
+          `\n[TOOL - internet_search] ⚠️ Search API error: ${response.status} ${response.statusText}`,
         ),
       );
       return {
@@ -62,7 +62,7 @@ export const internetSearch = {
     const { results } = data.web || {};
     if (!results || results.length === 0) {
       console.log(
-        chalk.red("[tool calling - internet_search] ⚠️ No search results found"),
+        chalk.red("[TOOL - internet_search] ⚠️ No search results found"),
       );
       return {
         success: false,
@@ -74,7 +74,7 @@ export const internetSearch = {
       results.map(async (result: any, index: number) => {
         console.log(
           chalk.green(
-            `[tool calling - internet_search] Result ${index + 1}: ${result.title} - ${result.url}`,
+            `[TOOL - internet_search] Result ${index + 1}: ${result.title} - ${result.url}`,
           ),
         );
         const html = await fetch(result.url, {

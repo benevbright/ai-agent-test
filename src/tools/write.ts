@@ -17,13 +17,11 @@ export const writeTool = {
     path: string;
     content: string;
   }) => {
-    console.log(
-      chalk.yellow(`\n[tool calling - write] Writing to file: ${filePath}`),
-    );
+    console.log(chalk.yellow(`\n[TOOL - write] Writing to file: ${filePath}`));
 
     try {
       const fullPath = path.resolve(filePath);
-      
+
       // Ensure directory exists
       const dirPath = path.dirname(fullPath);
       if (!fs.existsSync(dirPath)) {
@@ -31,7 +29,7 @@ export const writeTool = {
       }
 
       fs.writeFileSync(fullPath, content, "utf-8");
-      
+
       return {
         success: true,
         output: `File "${fullPath}" written successfully.`,
@@ -42,7 +40,7 @@ export const writeTool = {
       };
     } catch (error: any) {
       console.error(
-        chalk.red(`[tool calling - write] ⚠️ Failed to write file: ${error.message}`),
+        chalk.red(`[TOOL - write] ⚠️ Failed to write file: ${error.message}`),
       );
       return {
         success: false,

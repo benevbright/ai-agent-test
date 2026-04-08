@@ -32,7 +32,7 @@ export const readTool = {
   }) => {
     console.log(
       chalk.yellow(
-        `\n[tool calling - read] Reading file: ${filePath} (offset: ${offset}, limit: ${limit ?? "none"})`,
+        `\n[TOOL - read] Reading file: ${filePath} (offset: ${offset}, limit: ${limit ?? "none"})`,
       ),
     );
 
@@ -82,9 +82,7 @@ export const readTool = {
       };
     } catch (error: any) {
       console.error(
-        chalk.red(
-          `[tool calling - read] ⚠️ Failed to read file: ${error.message}`,
-        ),
+        chalk.red(`[TOOL - read] ⚠️ Failed to read file: ${error.message}`),
       );
       return {
         success: false,
