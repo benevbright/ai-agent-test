@@ -11,30 +11,39 @@ if (!fs.existsSync(logDir)) {
 const date = new Date();
 const logFile = path.join(logDir, `${date.toISOString()}-messages.log`);
 
-export function logToFile(message: string) {
-  const timestamp = new Date().toISOString();
-  const logEntry = `[${timestamp}] ${message}\n`;
-  fs.appendFileSync(logFile, logEntry);
-}
+export function appendMessageToLog(message: ModelMessage) {
+  const formattedMessage = JSON.stringify(message, null, 2)
+    .split("\n")
+    .map((line) => `  ${line}`)
+    .join("\n");
 
-export function logMessages(messages: ModelMessage[]) {
-  logToFile("\n--- Current Messages ---");
-  messages.forEach((msg, idx) => {
-    logToFile(`Message ${idx}: ${msg.role}`);
-    if (Array.isArray(msg.content)) {
-      msg.content.forEach((c: any) => {
-        if (c.type === "text")
-          logToFile(`  [Text] ${c.text.substring(0, 100)}...`);
-        else if (c.type === "tool-call")
-          logToFile(`  [Tool Call] ${c.toolName}`);
-        else if (c.type === "tool-result")
-          logToFile(`  [Tool Result] ${c.toolName}`);
-      });
-    } else {
-      logToFile(
-        `  Content: ${typeof msg.content === "string" ? msg.content.substring(0, 100) : JSON.stringify(msg.content)}`,
-      );
+  let fd: number | undefined;
+  try {
+    // Open read/write so we can truncate the closing bracket and append in-place.
+    fd = fs.openSync(logFile, "a+");
+    const { size } = fs.fstatSync(fd);
+
+    if (size === 0) {
+      fs.writeSync(fd, `[\n${formattedMessage}\n]\n`);
+      return;
     }
-  });
-  logToFile("--- End Messages ---\n");
+
+    // Expected file ending is "\n]\n" from our writer.
+    if (size >= 3) {
+      fs.ftruncateSync(fd, size - 3);
+      fs.writeSync(fd, `,\n${formattedMessage}\n]\n`);
+      return;
+    }
+
+    // Fallback for unexpected tiny/corrupt content.
+    fs.ftruncateSync(fd, 0);
+    fs.writeSync(fd, `[\n${formattedMessage}\n]\n`);
+  } catch {
+    // Last-resort fallback keeps logging functional.
+    fs.writeFileSync(logFile, `[\n${formattedMessage}\n]\n`);
+  } finally {
+    if (fd !== undefined) {
+      fs.closeSync(fd);
+    }
+  }
 }

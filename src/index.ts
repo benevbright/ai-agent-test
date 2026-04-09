@@ -9,7 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { logToFile, logMessages } from "./utils/system.js";
+import { appendMessageToLog } from "./utils/system.js";
 import dotenv from "dotenv";
 
 // Load environment variables from .env file
@@ -18,6 +18,12 @@ dotenv.config();
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Helper function to push to messages array and write to log
+function pushMessage(message: ModelMessage) {
+  messages.push(message);
+  appendMessageToLog(message);
+}
 
 // Read configuration from environment variables set by bin/ai
 const modelProvider = process.env.AI_MODEL_APITYPE as "openai" | "google";
@@ -63,11 +69,10 @@ async function askQuestion(prompt: string): Promise<string> {
 const messages: ModelMessage[] = [];
 
 async function runLoop(prompt: string) {
-  messages.push({
+  pushMessage({
     role: "user",
     content: prompt,
   });
-  logToFile(`User prompt: ${prompt.substring(0, 200)}...`);
 
   // Reset interrupt flag
   interruptRequested = false;
@@ -113,7 +118,6 @@ async function runLoop(prompt: string) {
     for await (const part of res.fullStream) {
       if (interruptRequested) {
         cleanupEscListener();
-        logToFile("=== break loop: user interrupted with ESC key ===");
         return;
       }
 
@@ -177,9 +181,6 @@ async function runLoop(prompt: string) {
             value: `Tool execution failed: missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}).`,
           },
         });
-        logToFile(
-          `Synthesized failed tool result for missing call ${toolCall.toolCallId} (${toolCall.toolName})`,
-        );
       }
     }
 
@@ -194,19 +195,17 @@ async function runLoop(prompt: string) {
     }
 
     if (assistantContent.length > 0) {
-      messages.push({
+      pushMessage({
         role: "assistant",
         content: assistantContent,
       });
-      logToFile("Added assistant message with content");
     }
 
     if (toolResultContent.length > 0) {
-      messages.push({
+      pushMessage({
         role: "tool",
         content: toolResultContent,
       });
-      logToFile(`Added ${toolResultContent.length} tool result(s)`);
     }
 
     // Display token usage
@@ -215,13 +214,7 @@ async function runLoop(prompt: string) {
         `\n\n[${modelName}] Token: ${usage.totalTokens || 0} (${usage.inputTokens || 0} + ${usage.outputTokens || 0})`,
       ),
     );
-
-    logToFile(
-      `Iteration complete. Tool calls: ${toolCallsCollected.length}, Tool results: ${toolResultContent.length}`,
-    );
-    logMessages(messages);
     if (toolCallsCollected.length === 0) {
-      logToFile("=== break loop: no tool calls ===");
       break;
     }
     const progressRes = toolResultContent.find(
@@ -229,7 +222,6 @@ async function runLoop(prompt: string) {
     );
     if (progressRes && (progressRes as any).output?.value === 100) {
       console.log("\nTask completed with 100% progress!");
-      logToFile("=== break loop: task completed with 100% progress ===");
       break;
     }
     const followUpRes = toolResultContent.find(
@@ -237,11 +229,9 @@ async function runLoop(prompt: string) {
     );
     if (followUpRes) {
       console.log(chalk.yellow("\n--- Waiting for user input ---"));
-      logToFile("=== break loop: asked user followup ===");
       break;
     }
     if (interruptRequested) {
-      logToFile("=== break loop: user interrupted with ESC key ===");
       break;
     }
   }
@@ -306,7 +296,6 @@ async function checkNpmUpdate(): Promise<{
 }
 
 async function main() {
-  logToFile(`\n========== Session Started ========== pwd: ${process.cwd()}`);
   console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`));
   console.log(chalk.cyan("interrupt: ESC, debug: 'debug [num]'"));
 
@@ -322,7 +311,6 @@ async function main() {
     }
   } catch (error) {
     // Silent fail - just don't show update message if something goes wrong
-    logToFile(`Failed to check for updates: ${(error as Error).message}`);
   }
 
   console.log(
@@ -337,8 +325,6 @@ async function main() {
       userPrompt.toLowerCase() === "exit" ||
       userPrompt.toLowerCase() === "quit"
     ) {
-      logToFile("User exited the session");
-      logToFile("========== Session Ended ==========\n");
       rl.close();
       break;
     }
