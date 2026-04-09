@@ -14,7 +14,9 @@ if (argv[2] === '--version') {
 
 // Handle --help command
 if (argv[2] === '--help') {
-  console.log(`ai-agent-test v${process.argv.slice(3).includes('--version') ? '' : '0.3.0'}
+  import('fs').then(({ readFileSync }) => {
+    const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
+    console.log(`ai-agent-test v${packageJson.version}
 
 Usage: ai [options] [model-index]
 
@@ -33,7 +35,8 @@ Examples:
   ai --version          # Show version
   ai --help             # Show help
 `);
-  process.exit(0);
+    process.exit(0);
+  });
 }
 
 // Handle update command
