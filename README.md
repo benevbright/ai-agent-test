@@ -52,18 +52,19 @@ Create a JSON configuration file at `~/.ai/models.json` with an array of model c
     "modelApiType": "openai",
     "modelName": "qwen3-coder-next",
     "apiBaseUrl": "http://localhost:1234/v1",
-    "apiKey": "dummy",
+    "apiKey": "dummy"
   },
   {
     "modelApiType": "google",
     "modelName": "gemini-2.5-flash",
     "apiBaseUrl": "https://generativelanguage.googleapis.com/v1beta",
-    "apiKey": "your_google_api_key_here",
+    "apiKey": "your_google_api_key_here"
   }
 ]
 ```
 
 Start CLI with selected model (default is the first model in the array):
+
 ```bash
 # option 1
 ai 1 # to select the second model (Google Gemini)
@@ -97,7 +98,7 @@ ai
 When installed globally, run `ai` to start the interactive CLI:
 
 - Type your prompt and press Enter to start the agent loop
-- `exit` or `quit` to terminate the session  
+- `exit` or `quit` to terminate the session
 - `debug <n>` to view last n messages (or all if no number provided)
 - ESC key to interrupt the current agent iteration
 

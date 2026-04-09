@@ -1,11 +1,11 @@
-import { z } from "zod";
-import fs from "fs";
-import path from "path";
-import chalk from "chalk";
+import { z } from "zod"
+import fs from "fs"
+import path from "path"
+import chalk from "chalk"
 
 export interface Edit {
-  oldText: string;
-  newText: string;
+  oldText: string
+  newText: string
 }
 
 export const editTool = {
@@ -30,44 +30,44 @@ export const editTool = {
     path: filePath,
     edits,
   }: {
-    path: string;
-    edits: Edit[];
+    path: string
+    edits: Edit[]
   }) => {
     console.log(
       chalk.yellow(
         `\n[TOOL - edit] Editing file: ${filePath} (edits: ${edits.length})`,
       ),
-    );
+    )
 
     try {
-      const fullPath = path.resolve(filePath);
+      const fullPath = path.resolve(filePath)
 
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
           error: `File not found: ${fullPath}`,
-        };
+        }
       }
 
-      let content = fs.readFileSync(fullPath, "utf-8");
-      let editsApplied = 0;
+      let content = fs.readFileSync(fullPath, "utf-8")
+      let editsApplied = 0
 
       for (const edit of edits) {
-        const existingContent = content;
-        content = content.replace(edit.oldText, edit.newText);
+        const existingContent = content
+        content = content.replace(edit.oldText, edit.newText)
 
         if (content !== existingContent) {
-          editsApplied++;
+          editsApplied++
         } else {
           console.warn(
             chalk.yellow(
               `[TOOL - edit] ⚠️ oldText not found in file: ${edit.oldText.substring(0, 50)}...`,
             ),
-          );
+          )
         }
       }
 
-      fs.writeFileSync(fullPath, content, "utf-8");
+      fs.writeFileSync(fullPath, content, "utf-8")
 
       return {
         success: true,
@@ -77,15 +77,15 @@ export const editTool = {
           editsCount: editsApplied,
           totalEdits: edits.length,
         },
-      };
+      }
     } catch (error: any) {
       console.error(
         chalk.red(`[TOOL - edit] ⚠️ Failed to edit file: ${error.message}`),
-      );
+      )
       return {
         success: false,
         error: error.message,
-      };
+      }
     }
   },
-};
+}

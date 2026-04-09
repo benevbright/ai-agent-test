@@ -1,12 +1,12 @@
-import { askUserFollowup } from "./ask_user_followup.js";
-import { recordProgress } from "./record_progress.js";
-import { bashTool } from "./bash.js";
-import { internetSearch } from "./internet_search.js";
-import { readTool } from "./read.js";
-import { writeTool } from "./write.js";
-import { editTool } from "./edit.js";
-import { compilationCheckTool } from "./compilation_check.js";
-import type { ToolSet } from "ai";
+import { askUserFollowup } from "./ask_user_followup.js"
+import { recordProgress } from "./record_progress.js"
+import { bashTool } from "./bash.js"
+import { internetSearch } from "./internet_search.js"
+import { readTool } from "./read.js"
+import { writeTool } from "./write.js"
+import { editTool } from "./edit.js"
+import { compilationCheckTool } from "./compilation_check.js"
+import type { ToolSet } from "ai"
 
 export const toolNames = {
   askUserFollowup: "ask_user_followup",
@@ -17,7 +17,7 @@ export const toolNames = {
   write: "write",
   edit: "edit",
   compilationCheck: "compilation_check",
-} as const;
+} as const
 
 export const tools = {
   [toolNames.askUserFollowup]: askUserFollowup,
@@ -28,4 +28,4 @@ export const tools = {
   [toolNames.write]: writeTool,
   [toolNames.edit]: editTool,
   [toolNames.compilationCheck]: compilationCheckTool,
-} as const satisfies ToolSet;
+} as const satisfies ToolSet

@@ -1,7 +1,7 @@
-import { z } from "zod";
-import fs from "fs";
-import path from "path";
-import chalk from "chalk";
+import { z } from "zod"
+import fs from "fs"
+import path from "path"
+import chalk from "chalk"
 
 export const writeTool = {
   description:
@@ -14,21 +14,21 @@ export const writeTool = {
     path: filePath,
     content,
   }: {
-    path: string;
-    content: string;
+    path: string
+    content: string
   }) => {
-    console.log(chalk.yellow(`\n[TOOL - write] Writing to file: ${filePath}`));
+    console.log(chalk.yellow(`\n[TOOL - write] Writing to file: ${filePath}`))
 
     try {
-      const fullPath = path.resolve(filePath);
+      const fullPath = path.resolve(filePath)
 
       // Ensure directory exists
-      const dirPath = path.dirname(fullPath);
+      const dirPath = path.dirname(fullPath)
       if (!fs.existsSync(dirPath)) {
-        fs.mkdirSync(dirPath, { recursive: true });
+        fs.mkdirSync(dirPath, { recursive: true })
       }
 
-      fs.writeFileSync(fullPath, content, "utf-8");
+      fs.writeFileSync(fullPath, content, "utf-8")
 
       return {
         success: true,
@@ -37,15 +37,15 @@ export const writeTool = {
           path: fullPath,
           size: content.length,
         },
-      };
+      }
     } catch (error: any) {
       console.error(
         chalk.red(`[TOOL - write] ⚠️ Failed to write file: ${error.message}`),
-      );
+      )
       return {
         success: false,
         error: error.message,
-      };
+      }
     }
   },
-};
+}

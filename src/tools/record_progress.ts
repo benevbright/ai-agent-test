@@ -1,5 +1,5 @@
-import { z } from "zod";
-import chalk from "chalk";
+import { z } from "zod"
+import chalk from "chalk"
 
 export const recordProgress = {
   description:
@@ -14,7 +14,7 @@ export const recordProgress = {
   execute: async ({ progress }: { progress: number }) => {
     console.log(
       chalk.yellow(`\n[TOOL - record_progress] Current progress: ${progress}%`),
-    );
-    return { success: true, output: progress };
+    )
+    return { success: true, output: progress }
   },
-};
+}

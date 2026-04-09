@@ -1,7 +1,7 @@
-import { z } from "zod";
-import fs from "fs";
-import path from "path";
-import chalk from "chalk";
+import { z } from "zod"
+import fs from "fs"
+import path from "path"
+import chalk from "chalk"
 
 export const readTool = {
   description:
@@ -26,68 +26,68 @@ export const readTool = {
     offset = 1,
     limit,
   }: {
-    path: string;
-    offset?: number;
-    limit?: number;
+    path: string
+    offset?: number
+    limit?: number
   }) => {
     console.log(
       chalk.yellow(
         `\n[TOOL - read] Reading file: ${filePath} (offset: ${offset}, limit: ${limit ?? "none"})`,
       ),
-    );
+    )
 
     try {
       // Resolve the path relative to current working directory
-      const fullPath = path.resolve(filePath);
+      const fullPath = path.resolve(filePath)
 
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
           error: `File not found: ${fullPath}`,
-        };
+        }
       }
 
-      const content = fs.readFileSync(fullPath, "utf-8");
-      const lines = content.split("\n");
+      const content = fs.readFileSync(fullPath, "utf-8")
+      const lines = content.split("\n")
 
       // Calculate start and end indices
-      const startIndex = Math.max(0, offset - 1);
+      const startIndex = Math.max(0, offset - 1)
       const endIndex = limit
         ? Math.min(lines.length, startIndex + limit)
-        : lines.length;
+        : lines.length
 
       if (startIndex >= lines.length) {
         return {
           success: true,
           output: `File "${fullPath}" has ${lines.length} lines. Offset ${offset} is beyond file end.`,
-        };
+        }
       }
 
-      const selectedLines = lines.slice(startIndex, endIndex);
-      const resultContent = selectedLines.join("\n");
+      const selectedLines = lines.slice(startIndex, endIndex)
+      const resultContent = selectedLines.join("\n")
 
-      let metadata = `\n\n[Read tool metadata:`;
-      metadata += `\n  File: ${fullPath}`;
-      metadata += `\n  Total lines in file: ${lines.length}`;
-      metadata += `\n  Offset: ${offset}`;
+      let metadata = `\n\n[Read tool metadata:`
+      metadata += `\n  File: ${fullPath}`
+      metadata += `\n  Total lines in file: ${lines.length}`
+      metadata += `\n  Offset: ${offset}`
       if (limit) {
-        metadata += `\n  Limit: ${limit}`;
+        metadata += `\n  Limit: ${limit}`
       }
-      metadata += `\n  Lines returned: ${selectedLines.length}`;
-      metadata += `\n]`;
+      metadata += `\n  Lines returned: ${selectedLines.length}`
+      metadata += `\n]`
 
       return {
         success: true,
         output: resultContent + metadata,
-      };
+      }
     } catch (error: any) {
       console.error(
         chalk.red(`[TOOL - read] ⚠️ Failed to read file: ${error.message}`),
-      );
+      )
       return {
         success: false,
         error: error.message,
-      };
+      }
     }
   },
-};
+}

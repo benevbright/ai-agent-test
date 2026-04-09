@@ -1,7 +1,7 @@
-import { z } from "zod";
-import { JSDOM } from "jsdom";
-import { assert } from "console";
-import chalk from "chalk";
+import { z } from "zod"
+import { JSDOM } from "jsdom"
+import { assert } from "console"
+import chalk from "chalk"
 
 export const internetSearch = {
   description:
@@ -27,47 +27,47 @@ export const internetSearch = {
     query,
     maxReadBodyLength,
   }: {
-    searchCount: number;
-    query: string;
-    maxReadBodyLength?: number;
+    searchCount: number
+    query: string
+    maxReadBodyLength?: number
   }) => {
-    const apiKey = process.env.BRAVE_API_KEY || "";
+    const apiKey = process.env.BRAVE_API_KEY || ""
     assert(
       apiKey,
       "BRAVE_API_KEY environment variable is required for internetSearch tool",
-    );
+    )
 
-    const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: searchCount.toString() })}`;
+    const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: searchCount.toString() })}`
 
-    console.log(chalk.yellow(`\n[TOOL - internet_search] Search: ${query}`));
+    console.log(chalk.yellow(`\n[TOOL - internet_search] Search: ${query}`))
     const response = await fetch(url, {
       headers: {
         Accept: "application/json",
         "Accept-Encoding": "gzip",
         "X-Subscription-Token": apiKey,
       },
-    });
+    })
     if (!response.ok) {
       console.log(
         chalk.red(
           `\n[TOOL - internet_search] ⚠️ Search API error: ${response.status} ${response.statusText}`,
         ),
-      );
+      )
       return {
         success: false,
         error: `Search API error: ${response.status} ${response.statusText}`,
-      };
+      }
     }
-    const data = await response.json();
-    const { results } = data.web || {};
+    const data = await response.json()
+    const { results } = data.web || {}
     if (!results || results.length === 0) {
       console.log(
         chalk.red("[TOOL - internet_search] ⚠️ No search results found"),
-      );
+      )
       return {
         success: false,
         error: "No search results found",
-      };
+      }
     }
 
     const contents = await Promise.all(
@@ -76,7 +76,7 @@ export const internetSearch = {
           chalk.green(
             `[TOOL - internet_search] Result ${index + 1}: ${result.title} - ${result.url}`,
           ),
-        );
+        )
         const html = await fetch(result.url, {
           headers: {
             "User-Agent":
@@ -84,16 +84,16 @@ export const internetSearch = {
             Accept:
               "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
           },
-        }).then((res) => res.text());
-        const dom = new JSDOM(html, { url });
-        const body = dom.window.document.body.textContent || "";
+        }).then((res) => res.text())
+        const dom = new JSDOM(html, { url })
+        const body = dom.window.document.body.textContent || ""
         return {
           url: result.url,
           title: result.title,
           body: body.slice(0, maxReadBodyLength),
-        };
+        }
       }),
-    );
+    )
     // console.log("[return tool result]");
     return {
       success: true,
@@ -101,6 +101,6 @@ export const internetSearch = {
       metadata: {
         maxReadBodyLength,
       },
-    };
+    }
   },
-};
+}

@@ -1,5 +1,5 @@
-import { z } from "zod";
-import chalk from "chalk";
+import { z } from "zod"
+import chalk from "chalk"
 
 export const askUserFollowup = {
   description:
@@ -18,7 +18,7 @@ export const askUserFollowup = {
       ),
   }),
   execute: async ({ question }: { question: string }) => {
-    console.log(chalk.yellow(`\n[TOOL - ask_user_followup] ${question}`));
-    return { success: true, output: `Asked user: ${question}` };
+    console.log(chalk.yellow(`\n[TOOL - ask_user_followup] ${question}`))
+    return { success: true, output: `Asked user: ${question}` }
   },
-};
+}

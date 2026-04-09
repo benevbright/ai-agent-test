@@ -1,29 +1,33 @@
 #!/usr/bin/env node
 
 // Load config first (before any imports that use it)
-import { loadConfig } from '../dist/config.js';
-const config = loadConfig();
-process.env.AI_MODEL_APITYPE = config.modelApiType;
-process.env.AI_MODEL_NAME = config.modelName;
-process.env.AI_API_BASE_URL = config.apiBaseUrl;
-process.env.AI_API_KEY = config.apiKey;
+import { loadConfig } from "../dist/config.js"
+const config = loadConfig()
+process.env.AI_MODEL_APITYPE = config.modelApiType
+process.env.AI_MODEL_NAME = config.modelName
+process.env.AI_API_BASE_URL = config.apiBaseUrl
+process.env.AI_API_KEY = config.apiKey
 
 // Pass command-line arguments to the main module
-import { argv } from 'process';
+import { argv } from "process"
 
 // Handle --version command
-if (argv[2] === '--version') {
-  import('fs').then(({ readFileSync }) => {
-    const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
-    console.log(packageJson.version);
-    process.exit(0);
-  });
+if (argv[2] === "--version") {
+  import("fs").then(({ readFileSync }) => {
+    const packageJson = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+    )
+    console.log(packageJson.version)
+    process.exit(0)
+  })
 }
 
 // Handle --help command
-if (argv[2] === '--help') {
-  import('fs').then(({ readFileSync }) => {
-    const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
+if (argv[2] === "--help") {
+  import("fs").then(({ readFileSync }) => {
+    const packageJson = JSON.parse(
+      readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
+    )
     console.log(`ai-agent-test v${packageJson.version}
 
 Usage: ai [options] [model-index]
@@ -46,73 +50,75 @@ Examples:
   ai update             # Update to latest version
   ai --version          # Show version
   ai --help             # Show help
-`);
-    process.exit(0);
-  });
+`)
+    process.exit(0)
+  })
 }
 
 // Handle update command
-if (argv[2] === 'update') {
-  import('child_process').then(({ execSync }) => {
-    execSync('npm install -g ai-agent-test', { stdio: 'inherit' });
-    process.exit(0);
-  });
+if (argv[2] === "update") {
+  import("child_process").then(({ execSync }) => {
+    execSync("npm install -g ai-agent-test", { stdio: "inherit" })
+    process.exit(0)
+  })
 }
 
 // Handle sessions command
-if (argv[2] === 'sessions') {
-  const subCommand = argv[3];
-  
-  import('../dist/utils/system.js').then(({ listSessions, loadSession, getSessionFileByIndex }) => {
-    if (subCommand === 'ls') {
-      // List sessions
-      const sessions = listSessions(20);
-      if (sessions.length === 0) {
-        console.log('No sessions found.');
+if (argv[2] === "sessions") {
+  const subCommand = argv[3]
+
+  import("../dist/utils/system.js").then(
+    ({ listSessions, loadSession, getSessionFileByIndex }) => {
+      if (subCommand === "ls") {
+        // List sessions
+        const sessions = listSessions(20)
+        if (sessions.length === 0) {
+          console.log("No sessions found.")
+        } else {
+          console.log(`Last ${sessions.length} sessions:`)
+          sessions.forEach((session, index) => {
+            let line = `${index}. ${session.timestamp}`
+            if (session.summary) {
+              line += ` - ${session.summary}`
+            }
+            console.log(line)
+          })
+        }
+        process.exit(0)
       } else {
-        console.log(`Last ${sessions.length} sessions:`);
-        sessions.forEach((session, index) => {
-          let line = `${index}. ${session.timestamp}`;
-          if (session.summary) {
-            line += ` - ${session.summary}`;
+        // Load a specific session by index
+        const sessionIndex = subCommand ? parseInt(subCommand, 10) : undefined
+        if (sessionIndex !== undefined && !isNaN(sessionIndex)) {
+          const sessionFile = getSessionFileByIndex(sessionIndex)
+          if (!sessionFile) {
+            console.log(`Session ${sessionIndex} not found.`)
+            process.exit(1)
           }
-          console.log(line);
-        });
-      }
-      process.exit(0);
-    } else {
-      // Load a specific session by index
-      const sessionIndex = subCommand ? parseInt(subCommand, 10) : undefined;
-      if (sessionIndex !== undefined && !isNaN(sessionIndex)) {
-        const sessionFile = getSessionFileByIndex(sessionIndex);
-        if (!sessionFile) {
-          console.log(`Session ${sessionIndex} not found.`);
-          process.exit(1);
+
+          const messages = loadSession(sessionFile)
+          if (!messages) {
+            console.log(`Could not load session ${sessionIndex}.`)
+            process.exit(1)
+          }
+
+          // Set env var to tell index.ts to load this session
+          process.env.AI_SESSION_INDEX = sessionIndex.toString()
+          process.env.AI_SESSION_FILE = sessionFile
+
+          console.log(`Loaded session ${sessionIndex} from ${sessionFile}`)
+          // Don't exit here - let the app continue to index.js
+        } else {
+          console.log("Usage: ai sessions <index> or ai sessions ls")
+          process.exit(1)
         }
-        
-        const messages = loadSession(sessionFile);
-        if (!messages) {
-          console.log(`Could not load session ${sessionIndex}.`);
-          process.exit(1);
-        }
-        
-        // Set env var to tell index.ts to load this session
-        process.env.AI_SESSION_INDEX = sessionIndex.toString();
-        process.env.AI_SESSION_FILE = sessionFile;
-        
-        console.log(`Loaded session ${sessionIndex} from ${sessionFile}`);
-        // Don't exit here - let the app continue to index.js
-      } else {
-        console.log('Usage: ai sessions <index> or ai sessions ls');
-        process.exit(1);
       }
-    }
-  });
+    },
+  )
 }
 
 // Set AI_MODEL_INDEX environment variable if provided as first argument
 if (argv[2]) {
-  process.env.AI_MODEL_INDEX = argv[2];
+  process.env.AI_MODEL_INDEX = argv[2]
 }
 
-import('../dist/index.js');
+import("../dist/index.js")

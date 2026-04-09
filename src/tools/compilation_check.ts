@@ -1,6 +1,6 @@
-import { z } from "zod";
-import { execSync } from "child_process";
-import chalk from "chalk";
+import { z } from "zod"
+import { execSync } from "child_process"
+import chalk from "chalk"
 
 export const compilationCheckTool = {
   description:
@@ -13,46 +13,46 @@ export const compilationCheckTool = {
       ),
   }),
   execute: async ({ commands }: { commands: string | string[] }) => {
-    const commandList = Array.isArray(commands) ? commands : [commands];
+    const commandList = Array.isArray(commands) ? commands : [commands]
     console.log(
       chalk.yellow(
         `\n[TOOL - compilationCheck] Running compilation checks: ${commandList.join(" && ")}`,
       ),
-    );
+    )
     try {
       const result = execSync(commandList.join(" && "), {
         encoding: "utf-8",
         stdio: "pipe",
-      });
+      })
 
       if (result.includes("error") || result.includes("Error")) {
         console.warn(
           chalk.yellow(
             `[TOOL - compilationCheck] ⚠️ Compilation check found issues.`,
           ),
-        );
+        )
         return {
           success: false,
           output: "Compilation check found errors:\n" + result,
-        };
+        }
       }
 
       return {
         success: true,
         output: "Compilation check passed successfully.\n" + result,
-      };
+      }
     } catch (error: any) {
       console.error(
         chalk.red(
           `[TOOL - compilationCheck] ⚠️ Compilation check failed: ${error.message}`,
         ),
-      );
+      )
       return {
         success: false,
         error: error.message,
         output: error.stdout?.toString() || "",
         stderr: error.stderr?.toString() || "",
-      };
+      }
     }
   },
-};
+}

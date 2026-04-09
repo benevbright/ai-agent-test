@@ -1,87 +1,87 @@
-import { streamText, type ModelMessage, type ToolContent } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
-import * as readline from "readline";
-import { toolNames, tools } from "./tools/index.js";
-import chalk from "chalk";
-import type { LanguageModelV3 } from "@ai-sdk/provider";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
-import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { appendMessageToLog, loadSession } from "./utils/system.js";
-import dotenv from "dotenv";
+import { streamText, type ModelMessage, type ToolContent } from "ai"
+import { createOpenAI } from "@ai-sdk/openai"
+import * as readline from "readline"
+import { toolNames, tools } from "./tools/index.js"
+import chalk from "chalk"
+import type { LanguageModelV3 } from "@ai-sdk/provider"
+import fs from "fs"
+import path from "path"
+import { fileURLToPath } from "url"
+import { dirname } from "path"
+import { createGoogleGenerativeAI } from "@ai-sdk/google"
+import { appendMessageToLog, loadSession } from "./utils/system.js"
+import dotenv from "dotenv"
 
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config()
 
 // Get the directory of this module (works with ES modules)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 // Helper function to push to messages array and write to log
 function pushMessage(message: ModelMessage) {
-  messages.push(message);
-  appendMessageToLog(message);
+  messages.push(message)
+  appendMessageToLog(message)
 }
 
 // Read configuration from environment variables set by bin/ai
-const modelProvider = process.env.AI_MODEL_APITYPE as "openai" | "google";
-const modelName = process.env.AI_MODEL_NAME || "";
-const baseUrl = process.env.AI_API_BASE_URL || "";
-const apiKey = process.env.AI_API_KEY || "";
+const modelProvider = process.env.AI_MODEL_APITYPE as "openai" | "google"
+const modelName = process.env.AI_MODEL_NAME || ""
+const baseUrl = process.env.AI_API_BASE_URL || ""
+const apiKey = process.env.AI_API_KEY || ""
 
-let model: LanguageModelV3;
+let model: LanguageModelV3
 
 if (modelProvider === "google") {
   model = createGoogleGenerativeAI({
     baseURL: baseUrl,
     apiKey: apiKey,
-  }).chat(modelName);
+  }).chat(modelName)
 } else {
   model = createOpenAI({
     baseURL: baseUrl,
     apiKey: apiKey,
-  }).chat(modelName);
+  }).chat(modelName)
 }
 
-const systemPromptPath = path.join(__dirname, "../SYSTEM.md");
-let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8");
+const systemPromptPath = path.join(__dirname, "../SYSTEM.md")
+let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8")
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
-  .replace("{pwd}", process.cwd());
+  .replace("{pwd}", process.cwd())
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
   terminal: false,
-});
+})
 
-let interruptRequested = false;
+let interruptRequested = false
 
 async function askQuestion(prompt: string): Promise<string> {
   return new Promise((resolve) => {
-    process.stdout.write(prompt);
-    rl.once("line", (answer: string) => resolve(answer));
-  });
+    process.stdout.write(prompt)
+    rl.once("line", (answer: string) => resolve(answer))
+  })
 }
 
 // Check for loaded messages from a previous session via env var
-const messages: ModelMessage[] = [];
-const sessionFile = process.env.AI_SESSION_FILE;
+const messages: ModelMessage[] = []
+const sessionFile = process.env.AI_SESSION_FILE
 if (sessionFile) {
-  const loadedMessages = loadSession(sessionFile);
+  const loadedMessages = loadSession(sessionFile)
   if (loadedMessages) {
-    messages.push(...loadedMessages);
+    messages.push(...loadedMessages)
     pushMessage({
       role: "assistant",
-      content: `[Resuming previous session from file ${sessionFile}]`,
-    });
+      content: `[The system resumed previous session from file ${sessionFile}. I should restart the chat with a short greeting to user to continue the conversation.]`,
+    })
     console.log(
       chalk.green(`Loaded ${messages.length} messages from previous session.`),
-    );
+    )
   } else {
-    console.error(chalk.red("Failed to load session."));
+    console.error(chalk.red("Failed to load session."))
   }
 }
 
@@ -89,36 +89,36 @@ async function runLoop(prompt: string) {
   pushMessage({
     role: "user",
     content: prompt,
-  });
+  })
 
   // Reset interrupt flag
-  interruptRequested = false;
+  interruptRequested = false
 
   // Set up ESC key listener
   const setupEscListener = () => {
     if (process.stdin.isTTY) {
-      process.stdin.setRawMode(true);
-      process.stdin.resume();
-      process.stdin.on("data", onKeyPress);
+      process.stdin.setRawMode(true)
+      process.stdin.resume()
+      process.stdin.on("data", onKeyPress)
     }
-  };
+  }
 
   const cleanupEscListener = () => {
     if (process.stdin.isTTY) {
-      process.stdin.removeListener("data", onKeyPress);
-      process.stdin.setRawMode(false);
+      process.stdin.removeListener("data", onKeyPress)
+      process.stdin.setRawMode(false)
     }
-  };
+  }
 
   const onKeyPress = (key: Buffer) => {
     // ESC key is 0x1b
     if (key[0] === 0x1b) {
-      console.log(chalk.magenta("\n\n[Interrupt requested]"));
-      interruptRequested = true;
+      console.log(chalk.magenta("\n\n[Interrupt requested]"))
+      interruptRequested = true
     }
-  };
+  }
 
-  setupEscListener();
+  setupEscListener()
 
   while (true) {
     const res = await streamText({
@@ -126,33 +126,33 @@ async function runLoop(prompt: string) {
       messages,
       tools,
       system: systemPrompt,
-    });
+    })
 
-    let fullText = "";
-    const toolCallsCollected: any[] = [];
-    const toolResultContent: ToolContent = [];
+    let fullText = ""
+    const toolCallsCollected: any[] = []
+    const toolResultContent: ToolContent = []
 
     for await (const part of res.fullStream) {
       if (interruptRequested) {
-        cleanupEscListener();
-        return;
+        cleanupEscListener()
+        return
       }
 
       if (part.type === "text-delta") {
         if (!fullText) {
-          process.stdout.write(chalk.cyan("\nAssistant: "));
+          process.stdout.write(chalk.cyan("\nAssistant: "))
         }
-        process.stdout.write(part.text);
-        fullText += part.text;
+        process.stdout.write(part.text)
+        fullText += part.text
       } else if (part.type === "tool-call") {
         toolCallsCollected.push({
           type: "tool-call",
           toolCallId: part.toolCallId,
           toolName: part.toolName,
           input: part.input,
-        });
+        })
       } else if (part.type === "tool-result") {
-        const output = (part as any).output;
+        const output = (part as any).output
         if (output && output.success) {
           toolResultContent.push({
             type: "tool-result",
@@ -164,7 +164,7 @@ async function runLoop(prompt: string) {
                 output.output +
                 `\n\n[Tool execution metadata: ${JSON.stringify(output.metadata || {})}]`,
             },
-          });
+          })
         } else {
           toolResultContent.push({
             type: "tool-result",
@@ -174,21 +174,21 @@ async function runLoop(prompt: string) {
               type: "text",
               value: output?.stderr || output?.error || "Unknown error",
             },
-          });
+          })
         }
       }
     }
 
     const toolResultIds = new Set(
       toolResultContent.map((result) => (result as any).toolCallId),
-    );
+    )
     for (const toolCall of toolCallsCollected) {
       if (!toolResultIds.has(toolCall.toolCallId)) {
         console.log(
           chalk.red(
             `Warning: Missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName})`,
           ),
-        );
+        )
         toolResultContent.push({
           type: "tool-result",
           toolCallId: toolCall.toolCallId,
@@ -197,32 +197,32 @@ async function runLoop(prompt: string) {
             type: "text",
             value: `Tool execution failed: missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}).`,
           },
-        });
+        })
       }
     }
 
-    const usage = await res.usage;
+    const usage = await res.usage
 
-    const assistantContent: any[] = [];
+    const assistantContent: any[] = []
     if (fullText) {
-      assistantContent.push({ type: "text", text: fullText });
+      assistantContent.push({ type: "text", text: fullText })
     }
     for (const toolCall of toolCallsCollected) {
-      assistantContent.push(toolCall);
+      assistantContent.push(toolCall)
     }
 
     if (assistantContent.length > 0) {
       pushMessage({
         role: "assistant",
         content: assistantContent,
-      });
+      })
     }
 
     if (toolResultContent.length > 0) {
       pushMessage({
         role: "tool",
         content: toolResultContent,
-      });
+      })
     }
 
     // Display token usage
@@ -230,101 +230,101 @@ async function runLoop(prompt: string) {
       chalk.gray(
         `\n\n[${modelName}] Token: ${usage.totalTokens || 0} (${usage.inputTokens || 0} + ${usage.outputTokens || 0})`,
       ),
-    );
+    )
     if (toolCallsCollected.length === 0) {
-      break;
+      break
     }
     const progressRes = toolResultContent.find(
       (result) => (result as any).toolName === toolNames.recordProgress,
-    );
+    )
     if (progressRes && (progressRes as any).output?.value === 100) {
-      console.log("\nTask completed with 100% progress!");
-      break;
+      console.log("\nTask completed with 100% progress!")
+      break
     }
     const followUpRes = toolResultContent.find(
       (result) => (result as any).toolName === toolNames.askUserFollowup,
-    );
+    )
     if (followUpRes) {
-      console.log(chalk.yellow("\n--- Waiting for user input ---"));
-      break;
+      console.log(chalk.yellow("\n--- Waiting for user input ---"))
+      break
     }
     if (interruptRequested) {
-      break;
+      break
     }
   }
 
-  cleanupEscListener();
+  cleanupEscListener()
 }
 
 async function checkNpmUpdate(): Promise<{
-  show: boolean;
-  currentVersion: string;
-  latestVersion: string;
+  show: boolean
+  currentVersion: string
+  latestVersion: string
 } | null> {
   try {
-    const { execSync } = await import("child_process");
+    const { execSync } = await import("child_process")
 
     // Get globally installed ai-agent-test version
     const output = execSync("npm ls -g --json 2>/dev/null", {
       encoding: "utf-8",
-    });
-    const data = JSON.parse(output);
+    })
+    const data = JSON.parse(output)
 
     // Navigate to ai-agent-test in the global npm tree
-    const aiAgentTest = data?.dependencies?.["ai-agent-test"];
+    const aiAgentTest = data?.dependencies?.["ai-agent-test"]
     if (!aiAgentTest) {
-      return null;
+      return null
     }
 
-    const currentVersion = aiAgentTest.version;
+    const currentVersion = aiAgentTest.version
 
     // Fetch latest version from npm registry
     const response = await fetch(
       "https://registry.npmjs.org/ai-agent-test/latest",
-    );
+    )
     if (!response.ok) {
-      return null;
+      return null
     }
-    const latestData = (await response.json()) as { version: string };
-    const latestVersion = latestData.version;
+    const latestData = (await response.json()) as { version: string }
+    const latestVersion = latestData.version
 
     // Simple version comparison
-    const currentParts = currentVersion.split(".").map(Number);
-    const latestParts = latestVersion.split(".").map(Number);
+    const currentParts = currentVersion.split(".").map(Number)
+    const latestParts = latestVersion.split(".").map(Number)
 
-    let needsUpdate = false;
+    let needsUpdate = false
     for (
       let i = 0;
       i < Math.max(currentParts.length, latestParts.length);
       i++
     ) {
-      const current = currentParts[i] || 0;
-      const latest = latestParts[i] || 0;
+      const current = currentParts[i] || 0
+      const latest = latestParts[i] || 0
       if (latest > current) {
-        needsUpdate = true;
-        break;
+        needsUpdate = true
+        break
       }
     }
 
-    return needsUpdate ? { show: true, currentVersion, latestVersion } : null;
+    return needsUpdate ? { show: true, currentVersion, latestVersion } : null
   } catch (error) {
-    return null;
+    return null
   }
 }
 
 async function main() {
-  console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`));
-  console.log(chalk.cyan("interrupt: ESC, debug: 'debug [num]'"));
+  console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`))
+  console.log(chalk.cyan("interrupt: ESC, debug: 'debug [num]'"))
 
   // Check for updates - only show if update is available
   try {
-    const updateInfo = await checkNpmUpdate();
+    const updateInfo = await checkNpmUpdate()
     if (updateInfo?.show) {
       console.log(
         chalk.cyan(
           `\nNew version available! Run 'ai update' (${updateInfo.currentVersion} -> ${updateInfo.latestVersion})`,
         ),
-      );
+      )
     }
   } catch (error) {
     // Silent fail - just don't show update message if something goes wrong
@@ -334,47 +334,47 @@ async function main() {
     chalk.cyan(
       "============================================================\n",
     ),
-  );
+  )
   while (true) {
-    const userPrompt = await askQuestion("\nPrompt: ");
+    const userPrompt = await askQuestion("\nPrompt: ")
 
     if (
       userPrompt.toLowerCase() === "exit" ||
       userPrompt.toLowerCase() === "quit"
     ) {
-      rl.close();
-      break;
+      rl.close()
+      break
     }
 
     // TODO: print debug
     if (userPrompt.toLowerCase().startsWith("debug")) {
-      console.log("\n--- Debug Info ---");
-      const parts = userPrompt.trim().split(/\s+/);
-      const tailNumStr = parts.length > 1 ? parts[1] : "";
-      const tailNum = tailNumStr ? parseInt(tailNumStr, 10) : undefined;
+      console.log("\n--- Debug Info ---")
+      const parts = userPrompt.trim().split(/\s+/)
+      const tailNumStr = parts.length > 1 ? parts[1] : ""
+      const tailNum = tailNumStr ? parseInt(tailNumStr, 10) : undefined
 
       if (tailNum && !isNaN(tailNum)) {
-        console.log(`Last ${tailNum} message(s):`);
-        const messagesToDisplay = tailNum > 0 ? messages.slice(-tailNum) : [];
-        console.log(JSON.stringify(messagesToDisplay, null, 2));
+        console.log(`Last ${tailNum} message(s):`)
+        const messagesToDisplay = tailNum > 0 ? messages.slice(-tailNum) : []
+        console.log(JSON.stringify(messagesToDisplay, null, 2))
       } else {
-        console.log("All messages:");
-        console.log(JSON.stringify(messages, null, 2));
+        console.log("All messages:")
+        console.log(JSON.stringify(messages, null, 2))
       }
-      console.log("--- End Debug Info ---\n");
-      continue;
+      console.log("--- End Debug Info ---\n")
+      continue
     }
 
     try {
-      await runLoop(userPrompt);
+      await runLoop(userPrompt)
     } catch (error) {
       console.error(
         chalk.red(`Error in main loop: ${(error as Error).message}`),
-      );
-      console.log(JSON.stringify(messages.slice(-10), null, 2));
-      throw error;
+      )
+      console.log(JSON.stringify(messages.slice(-10), null, 2))
+      throw error
     }
   }
 }
 
-main();
+main()
