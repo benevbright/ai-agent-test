@@ -1,5 +1,7 @@
 # AI Agent Test
 
+[![npm version](https://img.shields.io/npm/v/ai-agent-test.svg)](https://www.npmjs.com/package/ai-agent-test)
+
 A lightweight, extensible agentic workflow system built with TypeScript and the AI SDK. This project serves as a testbed for implementing mini agentic flows with support for small-sized local LLMs (30B-80B parameters) and few tool integrations.
 
 ## 🌟 Features
