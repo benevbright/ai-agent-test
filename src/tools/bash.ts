@@ -34,9 +34,13 @@ export const bashTool = {
       });
 
       let isResolved = false;
+      let timeoutId: NodeJS.Timeout | null = null;
       const markResolved = () => {
         if (!isResolved) {
           isResolved = true;
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
         }
       };
 
@@ -100,7 +104,6 @@ export const bashTool = {
       });
 
       // Set timeout
-      let timeoutId: NodeJS.Timeout | null = null;
       if (timeout && timeout > 0) {
         const timeoutMs = timeout * 1000;
         timeoutId = setTimeout(() => {
