@@ -27,7 +27,17 @@
     "url": "https://github.com/benevbright/ai-agent-test.git"
   },
   "license": "ISC",
-  "description": "",
+  "description": "A lightweight agentic workflow system for testing AI agent flows with local LLMs and tool integrations",
+  "keywords": [
+    "ai",
+    "agent",
+    "agentic",
+    "workflow",
+    "llm",
+    "local-llm",
+    "cli",
+    "automation"
+  ],
   "devDependencies": {
     "@types/jsdom": "^28.0.1",
     "@types/node": "^25.5.0",
