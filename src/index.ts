@@ -10,6 +10,10 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { logToFile, logMessages } from "./utils/system.js";
+import dotenv from "dotenv";
+
+// Load environment variables from .env file
+dotenv.config();
 
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url);
@@ -159,6 +163,11 @@ async function runLoop(prompt: string) {
     );
     for (const toolCall of toolCallsCollected) {
       if (!toolResultIds.has(toolCall.toolCallId)) {
+        console.log(
+          chalk.red(
+            `Warning: Missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName})`,
+          ),
+        );
         toolResultContent.push({
           type: "tool-result",
           toolCallId: toolCall.toolCallId,

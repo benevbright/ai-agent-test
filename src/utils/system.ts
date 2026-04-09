@@ -8,9 +8,12 @@ const logDir = path.join(homedir(), ".ai", "logs");
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
+const date = new Date();
+const datePart = date.toISOString().split("T")[0];
+const timePart = date.toISOString().split("T")[1]?.replace(/[:.]/g, "-") || "00-00-00-000";
 const logFile = path.join(
   logDir,
-  `agent-${new Date().toISOString().split("T")[0]}.log`,
+  `agent-${datePart}-${timePart}.log`,
 );
 
 export function logToFile(message: string) {
