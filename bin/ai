@@ -3,6 +3,39 @@
 // Pass command-line arguments to the main module
 import { argv } from 'process';
 
+// Handle --version command
+if (argv[2] === '--version') {
+  import('fs').then(({ readFileSync }) => {
+    const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf-8'));
+    console.log(packageJson.version);
+    process.exit(0);
+  });
+}
+
+// Handle --help command
+if (argv[2] === '--help') {
+  console.log(`ai-agent-test v${process.argv.slice(3).includes('--version') ? '' : '0.3.0'}
+
+Usage: ai [options] [model-index]
+
+Commands:
+  update         Update the ai-agent-test package to the latest version
+  --version      Show version number
+  --help         Show help message
+
+Arguments:
+  model-index    Index of the model to use (from ~/.ai/models.json)
+
+Examples:
+  ai                    # Run with default model
+  ai 1                  # Run with second model in config
+  ai update             # Update to latest version
+  ai --version          # Show version
+  ai --help             # Show help
+`);
+  process.exit(0);
+}
+
 // Handle update command
 if (argv[2] === 'update') {
   import('child_process').then(({ execSync }) => {
