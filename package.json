@@ -21,7 +21,7 @@
     "lint": "oxlint . --ignore-pattern dist/",
     "prepack": "rm -rf dist && npm run build"
   },
-  "author": "Bright Lee",
+  "author": "Bright Lee <benevbright@gmail.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/benevbright/ai-agent-test.git"
