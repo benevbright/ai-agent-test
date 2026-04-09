@@ -29,6 +29,7 @@ if (argv[2] === '--help') {
 Usage: ai [options] [model-index]
 
 Commands:
+  sessions       List last 20 sessions
   update         Update the ai-agent-test package to the latest version
   --version      Show version number
   --help         Show help message
@@ -39,6 +40,7 @@ Arguments:
 Examples:
   ai                    # Run with default model
   ai 1                  # Run with second model in config
+  ai sessions           # List last 20 sessions
   ai update             # Update to latest version
   ai --version          # Show version
   ai --help             # Show help
@@ -51,6 +53,22 @@ Examples:
 if (argv[2] === 'update') {
   import('child_process').then(({ execSync }) => {
     execSync('npm install -g ai-agent-test', { stdio: 'inherit' });
+    process.exit(0);
+  });
+}
+
+// Handle sessions command
+if (argv[2] === 'sessions') {
+  import('../dist/utils/system.js').then(({ listSessions }) => {
+    const sessions = listSessions(20);
+    if (sessions.length === 0) {
+      console.log('No sessions found.');
+    } else {
+      console.log(`Last ${sessions.length} sessions:`);
+      sessions.forEach((session, index) => {
+        console.log(`${index + 1}. ${session.timestamp}`);
+      });
+    }
     process.exit(0);
   });
 }

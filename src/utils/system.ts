@@ -47,3 +47,22 @@ export function appendMessageToLog(message: ModelMessage) {
     }
   }
 }
+
+export function listSessions(limit: number = 20): Array<{ file: string; timestamp: string }> {
+  if (!fs.existsSync(logDir)) {
+    return [];
+  }
+
+  const files = fs.readdirSync(logDir)
+    .filter((file) => file.endsWith("-messages.log"))
+    .sort((a, b) => {
+      // Sort by filename (which includes ISO timestamp) in reverse chronological order
+      return b.localeCompare(a);
+    })
+    .slice(0, limit);
+
+  return files.map((file) => ({
+    file,
+    timestamp: file.split("-messages.log")[0] || "",
+  }));
+}
