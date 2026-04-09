@@ -9,12 +9,7 @@ if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir, { recursive: true });
 }
 const date = new Date();
-const datePart = date.toISOString().split("T")[0];
-const timePart = date.toISOString().split("T")[1]?.replace(/[:.]/g, "-") || "00-00-00-000";
-const logFile = path.join(
-  logDir,
-  `agent-${datePart}-${timePart}.log`,
-);
+const logFile = path.join(logDir, `${date.toISOString()}-messages.log`);
 
 export function logToFile(message: string) {
   const timestamp = new Date().toISOString();
