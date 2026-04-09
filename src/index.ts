@@ -7,9 +7,7 @@ import type { LanguageModelV3 } from "@ai-sdk/provider";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { readFileSync } from "fs";
-import { homedir } from "os";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { logToFile, logMessages } from "./utils/system.js";
 
@@ -17,48 +15,11 @@ import { logToFile, logMessages } from "./utils/system.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Load configuration from ~/.ai/models.json
-const modelsFile = join(homedir(), ".ai", "models.json");
-let config: {
-  modelApiType: "openai" | "google";
-  modelName: string;
-  apiBaseUrl: string;
-  apiKey: string;
-};
-try {
-  const fileContent = readFileSync(modelsFile, "utf-8");
-  const models = JSON.parse(fileContent);
-  const modelIndex = parseInt(process.env.AI_MODEL_INDEX || "0", 10);
-  config = models[modelIndex];
-} catch (error) {
-  console.error(
-    chalk.red(
-      `Failed to load configuration from ${modelsFile}: ${(error as Error).message}`,
-    ),
-  );
-  const sampleConfig = [
-    {
-      modelApiType: "openai (openai or google)",
-      modelName: "gpt-4o",
-      apiBaseUrl: "https://api.openai.com/v1",
-      apiKey: "your-api-key-here",
-    },
-  ];
-  console.log(
-    chalk.yellow(
-      "\nPlease create a ~/.ai/models.json file with the following format:",
-    ),
-  );
-  console.log(chalk.yellow(JSON.stringify(sampleConfig, null, 2)));
-  process.exit(1);
-}
-
-const {
-  modelApiType: modelProvider,
-  modelName,
-  apiBaseUrl: baseUrl,
-  apiKey,
-} = config;
+// Read configuration from environment variables set by bin/ai
+const modelProvider = process.env.AI_MODEL_APITYPE as "openai" | "google";
+const modelName = process.env.AI_MODEL_NAME || "";
+const baseUrl = process.env.AI_API_BASE_URL || "";
+const apiKey = process.env.AI_API_KEY || "";
 
 let model: LanguageModelV3;
 

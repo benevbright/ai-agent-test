@@ -76,6 +76,18 @@ ai
 AI_MODEL_INDEX=1 ai
 ```
 
+### Using Environment Variables (CI/CD Friendly)
+
+Instead of using `~/.ai/models.json`, you can configure the CLI entirely through environment variables. This is especially useful for CI/CD environments:
+
+```bash
+export AI_MODEL_APITYPE="openai"
+export AI_MODEL_NAME="gpt-4o"
+export AI_API_BASE_URL="https://api.openai.com/v1"
+export AI_API_KEY="your_api_key_here"
+ai
+```
+
 ### Additional Environment Variables
 
 - `BRAVE_API_KEY`: (Required) API key for Brave Search for the internet search tool

@@ -1,5 +1,13 @@
 #!/usr/bin/env node
 
+// Load config first (before any imports that use it)
+import { loadConfig } from '../dist/config.js';
+const config = loadConfig();
+process.env.AI_MODEL_APITYPE = config.modelApiType;
+process.env.AI_MODEL_NAME = config.modelName;
+process.env.AI_API_BASE_URL = config.apiBaseUrl;
+process.env.AI_API_KEY = config.apiKey;
+
 // Pass command-line arguments to the main module
 import { argv } from 'process';
 
