@@ -100,3 +100,14 @@ When installed globally, run `ai` to start the interactive CLI:
 - `exit` or `quit` to terminate the session  
 - `debug <n>` to view last n messages (or all if no number provided)
 - ESC key to interrupt the current agent iteration
+
+### Session Management
+
+View and restore previous sessions:
+
+```bash
+ai sessions ls          # List last 20 sessions with 0-based indexing
+ai sessions 2           # Load and restart from session 2
+```
+
+When loading a session, the conversation history is restored and logged to the current session file.

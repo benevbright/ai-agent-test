@@ -29,8 +29,9 @@ if (argv[2] === '--help') {
 Usage: ai [options] [model-index]
 
 Commands:
-  sessions       List last 20 sessions
-  update         Update the ai-agent-test package to the latest version
+  sessions ls      List last 20 sessions
+  sessions <idx>   Load and restart from session <idx>
+  update           Update the ai-agent-test package to the latest version
   --version      Show version number
   --help         Show help message
 
@@ -40,7 +41,8 @@ Arguments:
 Examples:
   ai                    # Run with default model
   ai 1                  # Run with second model in config
-  ai sessions           # List last 20 sessions
+  ai sessions ls        # List last 20 sessions
+  ai sessions 2         # Load and restart from session 2
   ai update             # Update to latest version
   ai --version          # Show version
   ai --help             # Show help
@@ -59,21 +61,52 @@ if (argv[2] === 'update') {
 
 // Handle sessions command
 if (argv[2] === 'sessions') {
-  import('../dist/utils/system.js').then(({ listSessions }) => {
-    const sessions = listSessions(20);
-    if (sessions.length === 0) {
-      console.log('No sessions found.');
+  const subCommand = argv[3];
+  
+  import('../dist/utils/system.js').then(({ listSessions, loadSession, getSessionFileByIndex }) => {
+    if (subCommand === 'ls') {
+      // List sessions
+      const sessions = listSessions(20);
+      if (sessions.length === 0) {
+        console.log('No sessions found.');
+      } else {
+        console.log(`Last ${sessions.length} sessions:`);
+        sessions.forEach((session, index) => {
+          let line = `${index}. ${session.timestamp}`;
+          if (session.summary) {
+            line += ` - ${session.summary}`;
+          }
+          console.log(line);
+        });
+      }
+      process.exit(0);
     } else {
-      console.log(`Last ${sessions.length} sessions:`);
-      sessions.forEach((session, index) => {
-        let line = `${index + 1}. ${session.timestamp}`;
-        if (session.summary) {
-          line += ` - ${session.summary}`;
+      // Load a specific session by index
+      const sessionIndex = subCommand ? parseInt(subCommand, 10) : undefined;
+      if (sessionIndex !== undefined && !isNaN(sessionIndex)) {
+        const sessionFile = getSessionFileByIndex(sessionIndex);
+        if (!sessionFile) {
+          console.log(`Session ${sessionIndex} not found.`);
+          process.exit(1);
         }
-        console.log(line);
-      });
+        
+        const messages = loadSession(sessionFile);
+        if (!messages) {
+          console.log(`Could not load session ${sessionIndex}.`);
+          process.exit(1);
+        }
+        
+        // Set env var to tell index.ts to load this session
+        process.env.AI_SESSION_INDEX = sessionIndex.toString();
+        process.env.AI_SESSION_FILE = sessionFile;
+        
+        console.log(`Loaded session ${sessionIndex} from ${sessionFile}`);
+        // Don't exit here - let the app continue to index.js
+      } else {
+        console.log('Usage: ai sessions <index> or ai sessions ls');
+        process.exit(1);
+      }
     }
-    process.exit(0);
   });
 }
 

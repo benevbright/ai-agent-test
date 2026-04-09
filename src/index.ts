@@ -9,7 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { appendMessageToLog } from "./utils/system.js";
+import { appendMessageToLog, loadSession } from "./utils/system.js";
 import dotenv from "dotenv";
 
 // Load environment variables from .env file
@@ -66,7 +66,24 @@ async function askQuestion(prompt: string): Promise<string> {
   });
 }
 
+// Check for loaded messages from a previous session via env var
 const messages: ModelMessage[] = [];
+const sessionFile = process.env.AI_SESSION_FILE;
+if (sessionFile) {
+  const loadedMessages = loadSession(sessionFile);
+  if (loadedMessages) {
+    messages.push(...loadedMessages);
+    pushMessage({
+      role: "assistant",
+      content: `[Resuming previous session from file ${sessionFile}]`,
+    });
+    console.log(
+      chalk.green(`Loaded ${messages.length} messages from previous session.`),
+    );
+  } else {
+    console.error(chalk.red("Failed to load session."));
+  }
+}
 
 async function runLoop(prompt: string) {
   pushMessage({

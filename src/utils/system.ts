@@ -8,10 +8,28 @@ const sessionDir = path.join(homedir(), ".ai", "sessions");
 if (!fs.existsSync(sessionDir)) {
   fs.mkdirSync(sessionDir, { recursive: true });
 }
-const date = new Date();
-const sessionFile = path.join(
+
+// Get session file - checks env var dynamically, creates new file only if needed
+let currentSessionFile: string | undefined;
+export function getSessionFile(): string {
+  if (process.env.AI_SESSION_FILE) {
+    return path.join(sessionDir, process.env.AI_SESSION_FILE);
+  }
+  // If no env var, use the same session file for the duration of this run
+  if (!currentSessionFile) {
+    const date = new Date();
+    currentSessionFile = path.join(
+      sessionDir,
+      `${date.toISOString().replace(/\.\d{3}Z$/, "")}-messages.json`,
+    );
+  }
+  return currentSessionFile;
+}
+
+// For backward compatibility - default session file
+const defaultSessionFile = path.join(
   sessionDir,
-  `${date.toISOString().replace(/\.\d{3}Z$/, "")}-messages.json`,
+  `${new Date().toISOString().replace(/\.\d{3}Z$/, "")}-messages.json`,
 );
 
 export function appendMessageToLog(message: ModelMessage) {
@@ -23,7 +41,7 @@ export function appendMessageToLog(message: ModelMessage) {
   let fd: number | undefined;
   try {
     // Open read/write so we can truncate the closing bracket and append in-place.
-    fd = fs.openSync(sessionFile, "a+");
+    fd = fs.openSync(getSessionFile(), "a+");
     const { size } = fs.fstatSync(fd);
 
     if (size === 0) {
@@ -43,7 +61,7 @@ export function appendMessageToLog(message: ModelMessage) {
     fs.writeSync(fd, `[\n${formattedMessage}\n]\n`);
   } catch {
     // Last-resort fallback keeps logging functional.
-    fs.writeFileSync(sessionFile, `[\n${formattedMessage}\n]\n`);
+    fs.writeFileSync(getSessionFile(), `[\n${formattedMessage}\n]\n`);
   } finally {
     if (fd !== undefined) {
       fs.closeSync(fd);
@@ -109,4 +127,27 @@ export function listSessions(
     });
 
   return result;
+}
+
+export function loadSession(file: string): ModelMessage[] | null {
+  try {
+    const fullPath = path.join(sessionDir, file);
+    if (!fs.existsSync(fullPath)) {
+      return null;
+    }
+    const content = fs.readFileSync(fullPath, "utf-8");
+    return JSON.parse(content);
+  } catch (error) {
+    console.error(`Error loading session ${file}: ${(error as Error).message}`);
+    return null;
+  }
+}
+
+export function getSessionFileByIndex(index: number): string | null {
+  const sessions = listSessions();
+  if (index < 0 || index >= sessions.length) {
+    return null;
+  }
+  const session = sessions[index];
+  return session ? session.file : null;
 }
