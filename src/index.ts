@@ -193,6 +193,26 @@ async function runLoop(prompt: string) {
       }
     }
 
+    const toolResultIds = new Set(
+      toolResultContent.map((result) => (result as any).toolCallId),
+    );
+    for (const toolCall of toolCallsCollected) {
+      if (!toolResultIds.has(toolCall.toolCallId)) {
+        toolResultContent.push({
+          type: "tool-result",
+          toolCallId: toolCall.toolCallId,
+          toolName: toolCall.toolName,
+          output: {
+            type: "text",
+            value: `Tool execution failed: missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}).`,
+          },
+        });
+        logToFile(
+          `Synthesized failed tool result for missing call ${toolCall.toolCallId} (${toolCall.toolName})`,
+        );
+      }
+    }
+
     const usage = await res.usage;
 
     const assistantContent: any[] = [];
