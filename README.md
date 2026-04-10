@@ -67,7 +67,7 @@ Start CLI with selected model (default is the first model in the array):
 
 ```bash
 # option 1
-ai 1 # to select the second model (Google Gemini)
+ai models 1 # to select the second model (Google Gemini)
 
 # option 2
 export AI_MODEL_INDEX=1

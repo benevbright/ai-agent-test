@@ -3,9 +3,9 @@
 // Pass command-line arguments to the main module first
 import { argv } from "process"
 
-// Set AI_MODEL_INDEX environment variable if provided as first argument (before loadConfig)
-if (argv[2]) {
-  process.env.AI_MODEL_INDEX = argv[2]
+// Set AI_MODEL_INDEX environment variable if provided via 'models' command
+if (argv[2] === "models" && argv[3]) {
+  process.env.AI_MODEL_INDEX = argv[3]
 }
 
 // Load config after setting model index
@@ -38,6 +38,7 @@ if (argv[2] === "--help") {
 Usage: ai [options] [model-index]
 
 Commands:
+  models <idx>     Run with model at index <idx> from config
   sessions ls      List last 20 sessions
   sessions <idx>   Load and restart from session <idx>
   update           Update the ai-agent-test package to the latest version
@@ -49,7 +50,7 @@ Arguments:
 
 Examples:
   ai                    # Run with default model
-  ai 1                  # Run with second model in config
+  ai models 1           # Run with second model in config
   ai sessions ls        # List last 20 sessions
   ai sessions 2         # Load and restart from session 2
   ai update             # Update to latest version
