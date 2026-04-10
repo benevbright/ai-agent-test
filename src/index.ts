@@ -1,6 +1,5 @@
 import { streamText, type ModelMessage, type ToolContent } from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
-import * as readline from "readline"
 import { toolNames, tools } from "./tools/index.js"
 import chalk from "chalk"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
@@ -9,7 +8,12 @@ import path from "path"
 import { fileURLToPath } from "url"
 import { dirname } from "path"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { appendMessageToLog, loadSession } from "./utils/system.js"
+import {
+  appendMessageToLog,
+  askQuestion,
+  checkNpmUpdate,
+  loadSession,
+} from "./utils/system.js"
 import dotenv from "dotenv"
 
 // Load environment variables from .env file
@@ -52,20 +56,7 @@ systemPrompt = systemPrompt
   .replace("{pwd}", process.cwd())
   .replace("{ls}", fs.readdirSync(process.cwd()).join(", "))
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-  terminal: false,
-})
-
 let interruptRequested = false
-
-async function askQuestion(prompt: string): Promise<string> {
-  return new Promise((resolve) => {
-    process.stdout.write(prompt)
-    rl.once("line", (answer: string) => resolve(answer))
-  })
-}
 
 // Check for loaded messages from a previous session via env var
 const messages: ModelMessage[] = []
@@ -76,7 +67,7 @@ if (sessionFile) {
     messages.push(...loadedMessages)
     pushMessage({
       role: "assistant",
-      content: `[The system resumed previous session from file ${sessionFile}. I should restart the chat with a short greeting to user to continue the conversation.]`,
+      content: `[The system resumed previous session from file ${sessionFile}. I better re-engage the chat with a short greeting to user to continue the conversation.]`,
     })
     console.log(
       chalk.green(`Loaded ${messages.length} messages from previous session.`),
@@ -89,7 +80,7 @@ if (sessionFile) {
 async function runLoop(prompt: string) {
   pushMessage({
     role: "user",
-    content: `${prompt} (meta_date: ${new Date().toLocaleString()})`,
+    content: prompt,
   })
 
   // Reset interrupt flag
@@ -257,62 +248,6 @@ async function runLoop(prompt: string) {
   cleanupEscListener()
 }
 
-async function checkNpmUpdate(): Promise<{
-  show: boolean
-  currentVersion: string
-  latestVersion: string
-} | null> {
-  try {
-    const { execSync } = await import("child_process")
-
-    // Get globally installed ai-agent-test version
-    const output = execSync("npm ls -g --json 2>/dev/null", {
-      encoding: "utf-8",
-    })
-    const data = JSON.parse(output)
-
-    // Navigate to ai-agent-test in the global npm tree
-    const aiAgentTest = data?.dependencies?.["ai-agent-test"]
-    if (!aiAgentTest) {
-      return null
-    }
-
-    const currentVersion = aiAgentTest.version
-
-    // Fetch latest version from npm registry
-    const response = await fetch(
-      "https://registry.npmjs.org/ai-agent-test/latest",
-    )
-    if (!response.ok) {
-      return null
-    }
-    const latestData = (await response.json()) as { version: string }
-    const latestVersion = latestData.version
-
-    // Simple version comparison
-    const currentParts = currentVersion.split(".").map(Number)
-    const latestParts = latestVersion.split(".").map(Number)
-
-    let needsUpdate = false
-    for (
-      let i = 0;
-      i < Math.max(currentParts.length, latestParts.length);
-      i++
-    ) {
-      const current = currentParts[i] || 0
-      const latest = latestParts[i] || 0
-      if (latest > current) {
-        needsUpdate = true
-        break
-      }
-    }
-
-    return needsUpdate ? { show: true, currentVersion, latestVersion } : null
-  } catch (error) {
-    return null
-  }
-}
-
 async function main() {
   console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`))
   console.log(chalk.cyan("interrupt: ESC, debug: 'debug [num]'"))
@@ -343,7 +278,6 @@ async function main() {
       userPrompt.toLowerCase() === "exit" ||
       userPrompt.toLowerCase() === "quit"
     ) {
-      rl.close()
       break
     }
 
