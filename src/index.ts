@@ -154,7 +154,9 @@ async function runLoop(prompt: string) {
               type: "text",
               value:
                 output.output +
-                `\n\n[Tool execution metadata: ${JSON.stringify(output.metadata || {})}]`,
+                (output.metadata
+                  ? `\n\n[meta: ${JSON.stringify(output.metadata)}]`
+                  : ""),
             },
           })
         } else {
