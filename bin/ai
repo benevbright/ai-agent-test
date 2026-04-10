@@ -1,15 +1,20 @@
 #!/usr/bin/env node
 
-// Load config first (before any imports that use it)
+// Pass command-line arguments to the main module first
+import { argv } from "process"
+
+// Set AI_MODEL_INDEX environment variable if provided as first argument (before loadConfig)
+if (argv[2]) {
+  process.env.AI_MODEL_INDEX = argv[2]
+}
+
+// Load config after setting model index
 import { loadConfig } from "../dist/config.js"
 const config = loadConfig()
 process.env.AI_MODEL_APITYPE = config.modelApiType
 process.env.AI_MODEL_NAME = config.modelName
 process.env.AI_API_BASE_URL = config.apiBaseUrl
 process.env.AI_API_KEY = config.apiKey
-
-// Pass command-line arguments to the main module
-import { argv } from "process"
 
 // Handle --version command
 if (argv[2] === "--version") {
@@ -114,11 +119,6 @@ if (argv[2] === "sessions") {
       }
     },
   )
-}
-
-// Set AI_MODEL_INDEX environment variable if provided as first argument
-if (argv[2]) {
-  process.env.AI_MODEL_INDEX = argv[2]
 }
 
 import("../dist/index.js")
