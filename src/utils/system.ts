@@ -106,9 +106,11 @@ export function listSessions(
         if (userMessages.length > 0) {
           // Join all user messages with spaces
           const combined = userMessages.join(" ")
+          // Remove newlines to ensure single-line summary
+          const oneline = combined.replace(/\r?\n/g, " ")
           // Truncate to 40 characters if needed
           summary =
-            combined.length > 40 ? combined.substring(0, 40) + "..." : combined
+            oneline.length > 40 ? oneline.substring(0, 40) + "..." : oneline
         }
       } catch (error) {
         // If we can't read the file, just show timestamp
