@@ -50,6 +50,7 @@ let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8")
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
   .replace("{pwd}", process.cwd())
+  .replace("{ls}", fs.readdirSync(process.cwd()).join(", "))
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -88,7 +89,7 @@ if (sessionFile) {
 async function runLoop(prompt: string) {
   pushMessage({
     role: "user",
-    content: prompt,
+    content: `${prompt} (meta_date: ${new Date().toLocaleString()})`,
   })
 
   // Reset interrupt flag
