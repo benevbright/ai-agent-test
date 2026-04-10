@@ -87,7 +87,23 @@ export function listSessions(
 
   const result: Array<{ file: string; timestamp: string; summary?: string }> =
     files.map((file) => {
-      const timestamp = file.split("-messages.json")[0] || ""
+      // Parse ISO timestamp from filename and format as "YYYY-MM-DD HH:mm"
+      const isoTimestamp = file.split("-messages.json")[0] || ""
+      let formattedTimestamp = isoTimestamp
+      try {
+        const date = new Date(isoTimestamp)
+        if (!isNaN(date.getTime())) {
+          const year = date.getFullYear()
+          const month = String(date.getMonth() + 1).padStart(2, "0")
+          const day = String(date.getDate()).padStart(2, "0")
+          const hours = String(date.getHours()).padStart(2, "0")
+          const minutes = String(date.getMinutes()).padStart(2, "0")
+          formattedTimestamp = `${year}-${month}-${day} ${hours}:${minutes}`
+        }
+      } catch {
+        // If parsing fails, keep original timestamp
+      }
+      const timestamp = formattedTimestamp
 
       // Try to read and parse the session file for a summary
       let summary: string | undefined = undefined
