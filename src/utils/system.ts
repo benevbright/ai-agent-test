@@ -195,19 +195,131 @@ export async function askQuestion(prompt: string): Promise<string> {
     const stdout = process.stdout
     const BRACKETED_PASTE_ON = "\u001b[?2004h"
     const BRACKETED_PASTE_OFF = "\u001b[?2004l"
+    const ENHANCED_KEYS_ON = "\u001b[>24u"
+    const ENHANCED_KEYS_OFF = "\u001b[<u"
     const PASTE_START = "\u001b[200~"
     const PASTE_END = "\u001b[201~"
 
     let answer = ""
     let pasteBuffer = ""
     let isPasting = false
+    let pendingEscape = ""
 
     const normalizeForStorage = (text: string) =>
       text.replace(/\r\n?|\n/g, "\n")
     const normalizeForDisplay = (text: string) =>
       text.replace(/\r\n?|\n/g, "\r\n")
 
+    const decodeTextCodepoints = (encoded: string) => {
+      if (!encoded) {
+        return ""
+      }
+
+      return encoded
+        .split(":")
+        .map((value) => Number.parseInt(value, 10))
+        .filter((value) => Number.isFinite(value) && value > 0)
+        .map((value) => String.fromCodePoint(value))
+        .join("")
+    }
+
+    const parseCsiUSequence = (sequence: string) => {
+      if (!sequence.startsWith("\u001b[")) {
+        return null
+      }
+
+      const terminatorIndex = sequence.indexOf("u")
+      if (terminatorIndex === -1) {
+        return null
+      }
+
+      const body = sequence.slice(2, terminatorIndex)
+      if (!/^[0-9:;]+$/.test(body)) {
+        return null
+      }
+
+      const [keySection = "", modifierSection = "", textSection = ""] =
+        body.split(";")
+      const keyCodeSection = keySection.split(":")[0] || ""
+
+      if (!/^\d+$/.test(keyCodeSection)) {
+        return null
+      }
+
+      if (modifierSection && !/^\d+(?::\d+)?$/.test(modifierSection)) {
+        return null
+      }
+
+      return {
+        keyCode: Number.parseInt(keyCodeSection, 10),
+        modifiers: modifierSection
+          ? Number.parseInt(modifierSection.split(":")[0] || "1", 10)
+          : 1,
+        textPayload: decodeTextCodepoints(textSection),
+        rawLength: terminatorIndex + 1,
+      }
+    }
+
+    const redrawPrompt = () => {
+      stdout.write("\r\u001b[J")
+      stdout.write(prompt)
+      stdout.write(normalizeForDisplay(answer))
+    }
+
+    const removeLastCharacter = () => {
+      if (answer.length === 0) {
+        return
+      }
+
+      answer = Array.from(answer).slice(0, -1).join("")
+      redrawPrompt()
+    }
+
+    const exitWithSigint = () => {
+      cleanup()
+      stdout.write("^C\r\n")
+      process.exit(130)
+    }
+
+    const handleCsiUSequence = (sequence: string) => {
+      const parsed = parseCsiUSequence(sequence)
+      if (!parsed) {
+        return false
+      }
+
+      const { keyCode, modifiers, textPayload } = parsed
+      const shiftPressed = ((modifiers - 1) & 1) !== 0
+      const ctrlPressed = ((modifiers - 1) & 4) !== 0
+
+      if (ctrlPressed && (keyCode === 99 || keyCode === 67)) {
+        exitWithSigint()
+      }
+
+      if (textPayload) {
+        appendText(textPayload)
+        return true
+      }
+
+      if (keyCode === 13) {
+        if (shiftPressed) {
+          appendText("\n")
+          return true
+        }
+
+        commit()
+        return true
+      }
+
+      if (keyCode === 127 || keyCode === 8) {
+        removeLastCharacter()
+        return true
+      }
+
+      return true
+    }
+
     const cleanup = () => {
+      stdout.write(ENHANCED_KEYS_OFF)
       stdout.write(BRACKETED_PASTE_OFF)
       stdin.off("data", onData)
       stdin.setRawMode(false)
@@ -232,6 +344,12 @@ export async function askQuestion(prompt: string): Promise<string> {
     const handleControlSequence = (chunk: string, startIndex: number) => {
       const sequence = chunk.slice(startIndex)
 
+      const parsedCsiUSequence = parseCsiUSequence(sequence)
+      if (parsedCsiUSequence) {
+        handleCsiUSequence(sequence.slice(0, parsedCsiUSequence.rawLength))
+        return parsedCsiUSequence.rawLength
+      }
+
       if (
         sequence.startsWith("\u001b[A") ||
         sequence.startsWith("\u001b[B") ||
@@ -245,7 +363,8 @@ export async function askQuestion(prompt: string): Promise<string> {
     }
 
     const onData = (chunk: Buffer) => {
-      let text = chunk.toString("utf-8")
+      let text = pendingEscape + chunk.toString("utf-8")
+      pendingEscape = ""
 
       while (text.length > 0) {
         if (isPasting) {
@@ -286,21 +405,26 @@ export async function askQuestion(prompt: string): Promise<string> {
           }
 
           if (char === "\u0003") {
-            cleanup()
-            stdout.write("^C\r\n")
-            process.exit(130)
+            exitWithSigint()
           }
 
           if (char === "\u007f" || char === "\b") {
-            if (answer.length > 0) {
-              answer = answer.slice(0, -1)
-              stdout.write("\b \b")
-            }
+            removeLastCharacter()
             index += 1
             continue
           }
 
           if (char === "\u001b") {
+            const controlSequence = segment.slice(index)
+            if (
+              controlSequence.startsWith("\u001b[") &&
+              /^[0-9:;]*$/.test(controlSequence.slice(2))
+            ) {
+              pendingEscape = controlSequence
+              index = segment.length
+              continue
+            }
+
             index += handleControlSequence(segment, index)
             continue
           }
@@ -314,6 +438,7 @@ export async function askQuestion(prompt: string): Promise<string> {
     }
 
     stdout.write(prompt)
+    stdout.write(ENHANCED_KEYS_ON)
     stdout.write(BRACKETED_PASTE_ON)
     stdin.setRawMode(true)
     stdin.resume()
