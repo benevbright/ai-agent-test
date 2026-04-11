@@ -252,7 +252,9 @@ async function runLoop(prompt: string) {
 
 async function main() {
   console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`))
-  console.log(chalk.cyan("interrupt: ESC, debug: debug [num]"))
+  console.log(
+    chalk.cyan("interrupt: ESC, debug: debug [num], newline: Shift+Enter"),
+  )
 
   const updateInfo = await checkNpmUpdate()
   if (updateInfo?.show) {

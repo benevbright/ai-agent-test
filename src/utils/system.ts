@@ -159,6 +159,7 @@ export async function askQuestion(prompt: string): Promise<string> {
   const [value, error] = await readMultiline(prompt, {
     prefix: "",
     validate: (v) => (v.trim() === "" ? "Input cannot be empty" : undefined),
+    helpFooter: false,
     theme: {
       submitRender: "preserve",
     },
