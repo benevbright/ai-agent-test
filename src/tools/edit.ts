@@ -9,26 +9,34 @@ export interface Edit {
   replaceAll?: boolean
 }
 
+const editSchema = z.object({
+  oldText: z.string().describe("The exact text for JS's `replace()` function"),
+  newText: z.string().describe("The new text to insert"),
+  replaceAll: z
+    .boolean()
+    .optional()
+    .describe("If true, replace all occurrences instead of just the first one"),
+})
+
+function normalizeEditsInput(value: unknown): unknown {
+  if (typeof value !== "string") {
+    return value
+  }
+
+  try {
+    return JSON.parse(value)
+  } catch {
+    return value
+  }
+}
+
 export const editTool = {
   description:
     "Make precise, targeted edits to existing files. Replace specific text patterns without rewriting the entire file. Use this for modifications when you want to keep most of the file intact and only change specific lines or sections.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to edit"),
     edits: z
-      .array(
-        z.object({
-          oldText: z
-            .string()
-            .describe("The exact text for JS's `replace()` function"),
-          newText: z.string().describe("The new text to insert"),
-          replaceAll: z
-            .boolean()
-            .optional()
-            .describe(
-              "If true, replace all occurrences instead of just the first one",
-            ),
-        }),
-      )
+      .preprocess(normalizeEditsInput, z.array(editSchema))
       .describe(
         "Array of edits to apply. Use multiple edits in one call (oneshot) when modifying several parts of the file.",
       ),
@@ -60,7 +68,6 @@ export const editTool = {
       let editsApplied = 0
 
       for (const edit of edits) {
-        const existingContent = content
         let newContent = content
 
         if (edit.replaceAll) {
