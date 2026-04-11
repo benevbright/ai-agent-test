@@ -2,8 +2,8 @@ import { assert } from "console"
 import chalk from "chalk"
 import { z } from "zod"
 import {
-  fetchExtractedPageContent,
   searchWeb,
+  tryFetchExtractedPageContent,
   type WebSearchResult,
 } from "./web_retrieval.js"
 
@@ -351,26 +351,27 @@ export const docRetrieval = {
           ),
         )
 
-        try {
-          const content = await fetchExtractedPageContent(
-            maxReadBodyLength
-              ? {
-                  url: result.url,
-                  maxLength: maxReadBodyLength,
-                }
-              : {
-                  url: result.url,
-                },
-          )
+        const pageResult = await tryFetchExtractedPageContent(
+          maxReadBodyLength
+            ? {
+                url: result.url,
+                maxLength: maxReadBodyLength,
+              }
+            : {
+                url: result.url,
+              },
+        )
+
+        if (pageResult.success) {
           return {
             ...result,
-            content,
+            content: pageResult.content,
           }
-        } catch (error: any) {
-          return {
-            ...result,
-            error: error.message,
-          }
+        }
+
+        return {
+          ...result,
+          error: pageResult.error,
         }
       }),
     )

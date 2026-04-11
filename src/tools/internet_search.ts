@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { assert } from "console"
 import chalk from "chalk"
-import { fetchExtractedPageContent, searchWeb } from "./web_retrieval.js"
+import { searchWeb, tryFetchExtractedPageContent } from "./web_retrieval.js"
 
 export const internetSearch = {
   description:
@@ -71,15 +71,31 @@ export const internetSearch = {
             `[TOOL - internet_search] Result ${index + 1}: ${result.title} - ${result.url}`,
           ),
         )
-        const content = await fetchExtractedPageContent({
+
+        const pageResult = await tryFetchExtractedPageContent({
           url: result.url,
           maxLength: maxReadBodyLength,
         })
+
+        if (!pageResult.success) {
+          console.log(
+            chalk.red(
+              `[TOOL - internet_search] ⚠️ Failed to fetch ${result.url}: ${pageResult.error}`,
+            ),
+          )
+          return {
+            url: result.url,
+            title: result.title,
+            description: result.description,
+            content: `[fetch failed] ${pageResult.error}`,
+          }
+        }
+
         return {
           url: result.url,
           title: result.title,
           description: result.description,
-          content,
+          content: pageResult.content,
         }
       }),
     )

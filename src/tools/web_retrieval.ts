@@ -6,6 +6,16 @@ export interface WebSearchResult {
   description?: string
 }
 
+export type PageContentResult =
+  | {
+      success: true
+      content: string
+    }
+  | {
+      success: false
+      error: string
+    }
+
 const CONTENT_CANDIDATE_SELECTORS = [
   "article",
   "main",
@@ -288,4 +298,22 @@ export async function fetchExtractedPageContent({
 }): Promise<string> {
   const html = await fetchPageHtml(url)
   return truncateContent(extractMarkdownFromHtml(html, url), maxLength)
+}
+
+export async function tryFetchExtractedPageContent(args: {
+  url: string
+  maxLength?: number
+}): Promise<PageContentResult> {
+  try {
+    const content = await fetchExtractedPageContent(args)
+    return {
+      success: true,
+      content,
+    }
+  } catch (error: any) {
+    return {
+      success: false,
+      error: error.message,
+    }
+  }
 }
