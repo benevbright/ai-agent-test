@@ -255,7 +255,7 @@ export async function searchWeb({
         `\n[TOOL - internet_search] ⚠️ Failed search: Missing BRAVE_API_KEY environment variable. You can get a free API key from https://brave.com`,
       ),
     )
-    return { error: "Failed search: Missing Brave API key" }
+    return { error: "Failed web search: Brave Search API key missing" }
   }
   const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: count.toString() })}`
   const response = await fetch(url, {

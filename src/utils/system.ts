@@ -18,10 +18,10 @@ export function getSessionFile(): string {
   // If no env var, use the same session file for the duration of this run
   if (!currentSessionFile) {
     const date = new Date()
-    currentSessionFile = path.join(
-      sessionDir,
-      `${date.toISOString().replace(/\.\d{3}Z$/, "")}-messages.json`,
-    )
+    const isoString = date.toISOString()
+    const datePart = isoString.substring(0, 10)
+    const timePart = isoString.substring(11, 19).replace(/:/g, "")
+    currentSessionFile = path.join(sessionDir, `${datePart}T${timePart}.json`)
   }
   return currentSessionFile
 }
@@ -72,7 +72,7 @@ export function listSessions(
 
   const files = fs
     .readdirSync(sessionDir)
-    .filter((file) => file.endsWith("-messages.json"))
+    .filter((file) => file.endsWith(".json"))
     .sort((a, b) => {
       // Sort by filename (which includes ISO timestamp) in reverse chronological order
       return b.localeCompare(a)
@@ -81,23 +81,10 @@ export function listSessions(
 
   const result: Array<{ file: string; timestamp: string; summary?: string }> =
     files.map((file) => {
-      // Parse ISO timestamp from filename and format as "YYYY-MM-DD HH:mm"
-      const isoTimestamp = file.split("-messages.json")[0] || ""
-      let formattedTimestamp = isoTimestamp
-      try {
-        const date = new Date(isoTimestamp)
-        if (!isNaN(date.getTime())) {
-          const year = date.getFullYear()
-          const month = String(date.getMonth() + 1).padStart(2, "0")
-          const day = String(date.getDate()).padStart(2, "0")
-          const hours = String(date.getHours()).padStart(2, "0")
-          const minutes = String(date.getMinutes()).padStart(2, "0")
-          formattedTimestamp = `${year}-${month}-${day} ${hours}:${minutes}`
-        }
-      } catch {
-        // If parsing fails, keep original timestamp
-      }
-      const timestamp = formattedTimestamp
+      // Use the full path as timestamp with ~ for home directory (e.g., "~/.ai/sessions/2026-04-11T08:05:000Z-messages.json")
+      const fullPath = path.join(sessionDir, file)
+      const displayPath = fullPath.replace(homedir(), "~")
+      const timestamp = displayPath
 
       // Try to read and parse the session file for a summary
       let summary: string | undefined = undefined

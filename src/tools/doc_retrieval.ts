@@ -308,8 +308,6 @@ export const docRetrieval = {
       ...inferDocDomains(query),
     ])
 
-    const _needsSearch = explicitUrls.length < maxResults
-
     console.log(chalk.yellow(`\n[TOOL - doc_retrieval] Query: ${query}`))
     if (resolvedDomains.length > 0) {
       console.log(
