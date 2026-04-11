@@ -15,7 +15,7 @@ And read existing code and files enough before making changes, to avoid duplicat
 - When user says "commit" - Perform both `git add`, `git commit`, and `git push` (no confirmation needed)
 - Run `git status` before staging to verify what changes will be committed
 - When staging changes (with approval), always check that only intended files are staged
-- Avoid staging large batches (>10 files) or common problematic folders like /dist, /node_modules, *.log, .DS_Store. Ask to user.
+- Avoid staging large batches (>10 files) or common problematic folders like /dist, /node_modules, \*.log, .DS_Store. Ask to user.
 
 ## Tools and skills:
 
