@@ -23,6 +23,9 @@ And read existing code and files enough before making changes, to avoid duplicat
 - You can use built-in git commands using bash tools.
 - Use `gh` (GitHub CLI) for GitHub operations
 - Run `compilation_check` before committing to catch errors (e.g., `npx tsc --noEmit`, `npm run lint`)
+- Use `doc_retrieval` for library, framework, database, API, and platform documentation questions. It can discover official docs on its own, but you can pass explicit URLs or preferred domains when they are already known.
+- Prefer `doc_retrieval` over `internet_search` when the task needs reference docs or latest technical usage details. Use `internet_search` for broader web research, news, or non-documentation sources.
+- If documentation output is missing key details, call `doc_retrieval` again with a higher `maxReadBodyLength`, or set it to `0` to disable truncation.
 
 ## METADATA:
 

@@ -2,6 +2,7 @@ import { askUserFollowup } from "./ask_user_followup.js"
 import { recordProgress } from "./record_progress.js"
 import { bashTool } from "./bash.js"
 import { internetSearch } from "./internet_search.js"
+import { docRetrieval } from "./doc_retrieval.js"
 import { readTool } from "./read.js"
 import { writeTool } from "./write.js"
 import { editTool } from "./edit.js"
@@ -13,6 +14,7 @@ export const toolNames = {
   recordProgress: "record_progress",
   bash: "bash",
   internetSearch: "internet_search",
+  docRetrieval: "doc_retrieval",
   read: "read",
   write: "write",
   edit: "edit",
@@ -24,6 +26,7 @@ export const tools = {
   [toolNames.recordProgress]: recordProgress,
   [toolNames.bash]: bashTool,
   [toolNames.internetSearch]: internetSearch,
+  [toolNames.docRetrieval]: docRetrieval,
   [toolNames.read]: readTool,
   [toolNames.write]: writeTool,
   [toolNames.edit]: editTool,
