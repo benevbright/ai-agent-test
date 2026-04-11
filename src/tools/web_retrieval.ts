@@ -1,3 +1,4 @@
+import chalk from "chalk"
 import { JSDOM } from "jsdom"
 
 export interface WebSearchResult {
@@ -243,12 +244,19 @@ export function truncateContent(content: string, maxLength?: number): string {
 export async function searchWeb({
   query,
   count,
-  apiKey,
 }: {
   query: string
   count: number
-  apiKey: string
-}): Promise<WebSearchResult[]> {
+}): Promise<WebSearchResult[] | { error: string }> {
+  const apiKey = process.env.BRAVE_API_KEY
+  if (!apiKey) {
+    console.log(
+      chalk.red(
+        `\n[TOOL - internet_search] ⚠️ Failed search: Missing BRAVE_API_KEY environment variable. You can get a free API key from https://brave.com`,
+      ),
+    )
+    return { error: "Failed search: Missing Brave API key" }
+  }
   const url = `https://api.search.brave.com/res/v1/web/search?${new URLSearchParams({ q: query, count: count.toString() })}`
   const response = await fetch(url, {
     headers: {

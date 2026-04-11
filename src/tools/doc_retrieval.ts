@@ -1,4 +1,3 @@
-import { assert } from "console"
 import chalk from "chalk"
 import { z } from "zod"
 import {
@@ -203,13 +202,11 @@ async function resolveCandidateUrls({
   explicitUrls,
   preferredDomains,
   maxResults,
-  apiKey,
 }: {
   query: string
   explicitUrls: string[]
   preferredDomains: string[]
   maxResults: number
-  apiKey: string
 }): Promise<{
   rankedResults: RankedSearchResult[]
   searchQueries: string[]
@@ -232,8 +229,9 @@ async function resolveCandidateUrls({
             searchWeb({
               query: searchQuery,
               count: Math.min(3, maxResults),
-              apiKey,
-            }).catch(() => []),
+            })
+              .then((results) => (Array.isArray(results) ? results : []))
+              .catch(() => []),
           ),
         )
       ).flat()
@@ -310,14 +308,7 @@ export const docRetrieval = {
       ...inferDocDomains(query),
     ])
 
-    const needsSearch = explicitUrls.length < maxResults
-    const apiKey = process.env.BRAVE_API_KEY || ""
-    if (needsSearch) {
-      assert(
-        apiKey,
-        "BRAVE_API_KEY environment variable is required when doc retrieval needs web search",
-      )
-    }
+    const _needsSearch = explicitUrls.length < maxResults
 
     console.log(chalk.yellow(`\n[TOOL - doc_retrieval] Query: ${query}`))
     if (resolvedDomains.length > 0) {
@@ -333,7 +324,6 @@ export const docRetrieval = {
       explicitUrls,
       preferredDomains: resolvedDomains,
       maxResults,
-      apiKey,
     })
 
     if (rankedResults.length === 0) {

@@ -1,5 +1,4 @@
 import { z } from "zod"
-import { assert } from "console"
 import chalk from "chalk"
 import { searchWeb, tryFetchExtractedPageContent } from "./web_retrieval.js"
 
@@ -32,19 +31,12 @@ export const internetSearch = {
     query: string
     maxReadBodyLength: number
   }) => {
-    const apiKey = process.env.BRAVE_API_KEY || ""
-    assert(
-      apiKey,
-      "BRAVE_API_KEY environment variable is required for internetSearch tool",
-    )
-
     console.log(chalk.yellow(`\n[TOOL - internet_search] Search: ${query}`))
     let results
     try {
       results = await searchWeb({
         query,
         count: searchCount,
-        apiKey,
       })
     } catch (error: any) {
       console.log(chalk.red(`\n[TOOL - internet_search] ⚠️ ${error.message}`))
@@ -54,7 +46,15 @@ export const internetSearch = {
       }
     }
 
-    if (!results || results.length === 0) {
+    // Handle error case from searchWeb
+    if (!results || "error" in results) {
+      return {
+        success: false,
+        error: results?.error || "No search results found",
+      }
+    }
+
+    if (results.length === 0) {
       console.log(
         chalk.red("[TOOL - internet_search] ⚠️ No search results found"),
       )
