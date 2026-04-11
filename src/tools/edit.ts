@@ -6,40 +6,24 @@ import chalk from "chalk"
 export interface Edit {
   oldText: string
   newText: string
-  replaceAll?: boolean
+  useReplaceAll?: boolean
 }
 
 const editSchema = z.object({
   oldText: z.string().describe("The exact text for JS's `replace()` function"),
   newText: z.string().describe("The new text to insert"),
-  replaceAll: z
+  useReplaceAll: z
     .boolean()
     .optional()
     .describe("If true, replace all occurrences instead of just the first one"),
 })
-
-function normalizeEditsInput(value: unknown): unknown {
-  if (typeof value !== "string") {
-    return value
-  }
-
-  try {
-    return JSON.parse(value)
-  } catch {
-    return value
-  }
-}
 
 export const editTool = {
   description:
     "Make precise, targeted edits to existing files. Replace specific text patterns without rewriting the entire file. Use this for modifications when you want to keep most of the file intact and only change specific lines or sections.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to edit"),
-    edits: z
-      .preprocess(normalizeEditsInput, z.array(editSchema))
-      .describe(
-        "Array of edits to apply. Use multiple edits in one call (oneshot) when modifying several parts of the file.",
-      ),
+    edits: z.array(editSchema).describe("Array of edits to apply."),
   }),
   execute: async ({
     path: filePath,
@@ -70,7 +54,7 @@ export const editTool = {
       for (const edit of edits) {
         let newContent = content
 
-        if (edit.replaceAll) {
+        if (edit.useReplaceAll) {
           newContent = content.replaceAll(edit.oldText, edit.newText)
         } else {
           newContent = content.replace(edit.oldText, edit.newText)
