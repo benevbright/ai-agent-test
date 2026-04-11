@@ -6,6 +6,7 @@ import chalk from "chalk"
 export interface Edit {
   oldText: string
   newText: string
+  replaceAll?: boolean
 }
 
 export const editTool = {
@@ -20,10 +21,16 @@ export const editTool = {
             .string()
             .describe("The exact text for JS's `replace()` function"),
           newText: z.string().describe("The new text to insert"),
+          replaceAll: z
+            .boolean()
+            .optional()
+            .describe(
+              "If true, replace all occurrences instead of just the first one",
+            ),
         }),
       )
       .describe(
-        "Array of edits, each containing oldText and newText for exact match replacement",
+        "Array of edits to apply. Use multiple edits in one call (oneshot) when modifying several parts of the file.",
       ),
   }),
   execute: async ({
@@ -54,10 +61,17 @@ export const editTool = {
 
       for (const edit of edits) {
         const existingContent = content
-        content = content.replace(edit.oldText, edit.newText)
+        let newContent = content
 
-        if (content !== existingContent) {
+        if (edit.replaceAll) {
+          newContent = content.replaceAll(edit.oldText, edit.newText)
+        } else {
+          newContent = content.replace(edit.oldText, edit.newText)
+        }
+
+        if (newContent !== content) {
           editsApplied++
+          content = newContent
         } else {
           console.warn(
             chalk.yellow(
