@@ -156,12 +156,25 @@ export function getSessionFileByIndex(index: number): string | null {
 }
 
 export async function askQuestion(prompt: string): Promise<string> {
-  const [value, error] = await readMultiline(prompt, {
-    prefix: "",
+  const [value, error] = await readMultiline("", {
+    prefix: {
+      pending: "", // while editing
+      submitted: "✔ ", // after submission
+      cancelled: "✘ ", // after Ctrl+C (optional, defaults to pending)
+      error: "! ",
+    },
+    linePrefix: "",
+    initialValue: prompt,
     validate: (v) => (v.trim() === "" ? "Input cannot be empty" : undefined),
     helpFooter: false,
     theme: {
       submitRender: "preserve",
+      prefix: {
+        pending: "gray",
+        submitted: "green",
+        cancelled: "red",
+        error: "red",
+      },
     },
   })
   if (error?.kind === "cancel") {
