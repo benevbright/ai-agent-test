@@ -180,7 +180,7 @@ export async function askQuestion(prompt: string): Promise<string> {
   if (error?.kind === "cancel") {
     return "exit"
   }
-  return value
+  return value.startsWith(prompt) ? value.substring(prompt.length) : value
 }
 
 export async function checkNpmUpdate(): Promise<{
