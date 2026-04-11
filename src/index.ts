@@ -252,9 +252,7 @@ async function runLoop(prompt: string) {
 
 async function main() {
   console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`))
-  console.log(
-    chalk.cyan("interrupt: ESC, debug: 'debug [num]', newline: Shift+Enter"),
-  )
+  console.log(chalk.cyan("interrupt: ESC, debug: debug [num]"))
 
   const updateInfo = await checkNpmUpdate()
   if (updateInfo?.show) {
@@ -271,12 +269,10 @@ async function main() {
     ),
   )
   while (true) {
-    const userPrompt = await askQuestion("\nPrompt: ")
+    console.log("")
+    const userPrompt = await askQuestion("Prompt: ")
 
-    if (
-      userPrompt.toLowerCase() === "exit" ||
-      userPrompt.toLowerCase() === "quit"
-    ) {
+    if (userPrompt.toLowerCase() === "exit") {
       break
     }
 

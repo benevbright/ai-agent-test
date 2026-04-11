@@ -2,6 +2,7 @@ import * as fs from "fs"
 import path from "path"
 import type { ModelMessage } from "ai"
 import { homedir } from "os"
+import { readMultiline } from "@toiroakr/read-multiline"
 
 // Session file setup
 const sessionDir = path.join(homedir(), ".ai", "sessions")
@@ -155,6 +156,20 @@ export function getSessionFileByIndex(index: number): string | null {
 }
 
 export async function askQuestion(prompt: string): Promise<string> {
+  const [value, error] = await readMultiline(prompt, {
+    prefix: "",
+    validate: (v) => (v.trim() === "" ? "Input cannot be empty" : undefined),
+    theme: {
+      submitRender: "preserve",
+    },
+  })
+  if (error?.kind === "cancel") {
+    return "exit"
+  }
+  return value
+}
+
+export async function askQuestion2(prompt: string): Promise<string> {
   return new Promise((resolve) => {
     if (!process.stdin.isTTY) {
       process.stdout.write(prompt)
