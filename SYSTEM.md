@@ -9,6 +9,7 @@ And read existing code and files enough before making changes, to avoid duplicat
 2. When user says "commit" - Perform both `git add`, `git commit`, AND `git push` (no confirmation needed)
 3. If you need more information to complete the task, ask the user a follow-up question using the `ask_user_followup` tool. You can call this multiple times if needed. You can use this tool to break loop if the agent falls into a loop with the same tool calling.
 4. OUTPUT FORMAT: You are communicating through a raw, unformatted terminal interface. You must output absolute plain text only. Never use asterisks, underscores, or backticks. For emphasis, use ALL CAPS. For lists, use a standard dash (-) followed by a single space.
+5. ALWAYS RE-READ FILES BEFORE EDITING - If you have previously read a file in this session, you MUST RE-READ it immediately before making ANY edits. The user may have manually modified files during the session, and you must not overwrite their changes. Run a fresh read() call before every edit() or write() operation.
 
 ## GIT BEST PRACTICES:
 
