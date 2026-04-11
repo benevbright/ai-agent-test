@@ -1,0 +1,3 @@
+- [ ] concat ~/.ai/SYSTEM.md and project's .ai/SYSTEM.md to ai-agent's system prompt.
+- [ ] add doc retrival tool. To get latest lib info.
+- [ ] improve loop with testing tools so the agent can complete tasks in better shape.

@@ -256,18 +256,13 @@ async function main() {
     chalk.cyan("interrupt: ESC, debug: 'debug [num]', newline: Shift+Enter"),
   )
 
-  // Check for updates - only show if update is available
-  try {
-    const updateInfo = await checkNpmUpdate()
-    if (updateInfo?.show) {
-      console.log(
-        chalk.cyan(
-          `\nNew version available! Run 'ai update' (${updateInfo.currentVersion} -> ${updateInfo.latestVersion})`,
-        ),
-      )
-    }
-  } catch (error) {
-    // Silent fail - just don't show update message if something goes wrong
+  const updateInfo = await checkNpmUpdate()
+  if (updateInfo?.show) {
+    console.log(
+      chalk.cyan(
+        `\nNew version available! Run 'ai update' (${updateInfo.currentVersion} -> ${updateInfo.latestVersion})`,
+      ),
+    )
   }
 
   console.log(

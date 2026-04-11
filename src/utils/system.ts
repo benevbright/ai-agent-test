@@ -26,12 +26,6 @@ export function getSessionFile(): string {
   return currentSessionFile
 }
 
-// For backward compatibility - default session file
-const defaultSessionFile = path.join(
-  sessionDir,
-  `${new Date().toISOString().replace(/\.\d{3}Z$/, "")}-messages.json`,
-)
-
 export function appendMessageToLog(message: ModelMessage) {
   const formattedMessage = JSON.stringify(message, null, 2)
     .split("\n")
@@ -130,6 +124,9 @@ export function listSessions(
         }
       } catch (error) {
         // If we can't read the file, just show timestamp
+        console.log(
+          `Error reading session file ${file} for summary: ${(error as Error).message}`,
+        )
       }
 
       const session: { file: string; timestamp: string; summary?: string } = {
@@ -260,7 +257,7 @@ export async function askQuestion(prompt: string): Promise<string> {
       }
     }
 
-    const redrawPrompt = () => {
+    const _redrawPrompt = () => {
       stdout.write("\r\u001b[J")
       stdout.write(prompt)
       stdout.write(normalizeForDisplay(answer))
@@ -271,8 +268,10 @@ export async function askQuestion(prompt: string): Promise<string> {
         return
       }
 
+      // Remove the last grapheme from the answer
       answer = Array.from(answer).slice(0, -1).join("")
-      redrawPrompt()
+      // Erase the character from the terminal: move back, overwrite with space, move back again
+      stdout.write("\b \b")
     }
 
     const exitWithSigint = () => {
@@ -494,6 +493,7 @@ export async function checkNpmUpdate(): Promise<{
 
     return needsUpdate ? { show: true, currentVersion, latestVersion } : null
   } catch (error) {
+    console.log(`Error checking for npm updates: ${(error as Error).message}`)
     return null
   }
 }
