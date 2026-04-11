@@ -165,7 +165,8 @@ export async function askQuestion(prompt: string): Promise<string> {
     },
     linePrefix: "",
     initialValue: prompt,
-    validate: (v) => (v.trim() === "" ? "Input cannot be empty" : undefined),
+    validate: (v) =>
+      v.trim() === "" || v === prompt ? "Input cannot be empty" : undefined,
     helpFooter: false,
     theme: {
       submitRender: "preserve",
