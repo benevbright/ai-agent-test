@@ -83,6 +83,23 @@ export const bashTool = {
           console.error(
             chalk.red(`[TOOL - bash] ⚠️ Command failed with code ${code}`),
           )
+          // Print stderr output for visibility
+          if (stderrOutput.trim()) {
+            const lines = stderrOutput.trim().split("\n")
+            console.error(
+              chalk.red(`[TOOL - bash] Stderr preview: ${lines[0]}...`),
+            )
+            if (lines.length > 1) {
+              console.error(chalk.red(`[TOOL - bash] ${lines[1]}...`))
+              if (lines.length > 2) {
+                console.error(
+                  chalk.red(
+                    `[TOOL - bash] and ${lines.length - 2} more line(s)`,
+                  ),
+                )
+              }
+            }
+          }
           resolve({
             success: false,
             error: `Command failed with code ${code}`,
