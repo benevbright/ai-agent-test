@@ -265,7 +265,11 @@ async function main() {
     )
   }
 
-  console.log(chalk.cyan(new Array(helpText.length).fill("=").join("") + "\n"))
+  console.log(
+    chalk.cyan(
+      Array.from({ length: helpText.length }).fill("=").join("") + "\n",
+    ),
+  )
   while (true) {
     console.log("")
     const userPrompt = await askQuestion("Prompt: ")
