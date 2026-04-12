@@ -108,58 +108,59 @@ if (argv[2] === "update") {
     process.exit(0)
   })
 }
+import {
+  listSessions,
+  loadSession,
+  getSessionFileByIndex,
+} from "../dist/utils/system.js"
 
 // Handle sessions command
 if (argv[2] === "sessions") {
   const subCommand = argv[3]
 
-  import("../dist/utils/system.js").then(
-    ({ listSessions, loadSession, getSessionFileByIndex }) => {
-      if (subCommand === "ls") {
-        // List sessions
-        const sessions = listSessions(20)
-        if (sessions.length === 0) {
-          console.log("No sessions found.")
-        } else {
-          console.log(`Last ${sessions.length} sessions:`)
-          sessions.forEach((session, index) => {
-            let line = `${index}. ${session.timestamp}`
-            if (session.summary) {
-              line += ` - ${session.summary}`
-            }
-            console.log(line)
-          })
+  if (subCommand === "ls") {
+    // List sessions
+    const sessions = listSessions(20)
+    if (sessions.length === 0) {
+      console.log("No sessions found.")
+    } else {
+      console.log(`Last ${sessions.length} sessions:`)
+      sessions.forEach((session, index) => {
+        let line = `${index}. ${session.timestamp}`
+        if (session.summary) {
+          line += ` - ${session.summary}`
         }
-        process.exit(0)
-      } else {
-        // Load a specific session by index
-        const sessionIndex = subCommand ? parseInt(subCommand, 10) : undefined
-        if (sessionIndex !== undefined && !isNaN(sessionIndex)) {
-          const sessionFile = getSessionFileByIndex(sessionIndex)
-          if (!sessionFile) {
-            console.log(`Session ${sessionIndex} not found.`)
-            process.exit(1)
-          }
-
-          const messages = loadSession(sessionFile)
-          if (!messages) {
-            console.log(`Could not load session ${sessionIndex}.`)
-            process.exit(1)
-          }
-
-          // Set env var to tell index.ts to load this session
-          process.env.AI_SESSION_INDEX = sessionIndex.toString()
-          process.env.AI_SESSION_FILE = sessionFile
-
-          console.log(`Loaded session ${sessionIndex} from ${sessionFile}`)
-          // Don't exit here - let the app continue to index.js
-        } else {
-          console.log("Usage: ai sessions <index> or ai sessions ls")
-          process.exit(1)
-        }
+        console.log(line)
+      })
+    }
+    process.exit(0)
+  } else {
+    // Load a specific session by index
+    const sessionIndex = subCommand ? parseInt(subCommand, 10) : undefined
+    if (sessionIndex !== undefined && !isNaN(sessionIndex)) {
+      const sessionFile = getSessionFileByIndex(sessionIndex)
+      if (!sessionFile) {
+        console.log(`Session ${sessionIndex} not found.`)
+        process.exit(1)
       }
-    },
-  )
+
+      const messages = loadSession(sessionFile)
+      if (!messages) {
+        console.log(`Could not load session ${sessionIndex}.`)
+        process.exit(1)
+      }
+
+      // Set env var to tell index.ts to load this session
+      process.env.AI_SESSION_INDEX = sessionIndex.toString()
+      process.env.AI_SESSION_FILE = sessionFile
+
+      console.log(`Loaded session ${sessionIndex} from ${sessionFile}`)
+      // Don't exit here - let the app continue to index.js
+    } else {
+      console.log("Usage: ai sessions <index> or ai sessions ls")
+      process.exit(1)
+    }
+  }
 }
 
 import("../dist/index.js")
