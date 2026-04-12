@@ -39,6 +39,7 @@ const baseUrl = process.env.AI_API_BASE_URL || ""
 const apiKey = process.env.AI_API_KEY || ""
 
 let model: LanguageModelV3
+let contextLength: number = 0 // 0 means not yet fetched
 
 if (modelProvider === "google") {
   model = createGoogleGenerativeAI({
@@ -50,6 +51,35 @@ if (modelProvider === "google") {
     baseURL: baseUrl,
     apiKey: apiKey,
   }).chat(modelName)
+}
+
+// Fetch context length from models API if available (only once)
+async function fetchContextLength(): Promise<number> {
+  // Only fetch if we still have the default value
+  if (contextLength !== 0) {
+    return contextLength
+  }
+  try {
+    const response = await fetch(`${baseUrl}/models`, {
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+    })
+    const data = await response.json()
+    
+    // Try to find the model in different possible response formats
+    const modelsArray = data.data || data
+    const modelData = modelsArray.find((m: any) => m.id === modelName)
+    
+    if (modelData) {
+      // Check for context_length in various locations
+      contextLength = modelData.context_length || 0
+      return contextLength
+    }
+  } catch {
+    // Fail silently - use default fallback
+  }
+  return contextLength // return 0 if not found
 }
 
 const systemPromptPath = path.join(__dirname, "../SYSTEM.md")
@@ -99,6 +129,9 @@ async function runLoop(prompt: string) {
 
   // Reset interrupt flag
   interruptRequested = false
+
+  // Fetch context length for percentage calculation
+  await fetchContextLength()
 
   // Set up ESC key listener
   const setupEscListener = () => {
@@ -233,12 +266,18 @@ async function runLoop(prompt: string) {
       })
     }
 
-    // Display token usage
-    console.log(
-      chalk.gray(
-        `\n\n[${modelName}] Token: ${usage.totalTokens || 0} (${usage.inputTokens || 0} + ${usage.outputTokens || 0})`,
-      ),
-    )
+    // Display token usage with percentage of context window
+    if (contextLength > 0) {
+      const percentage = ((usage.totalTokens || 0) / contextLength * 100).toFixed(1)
+      console.log(
+        chalk.gray(`\n\n[${modelName}] Token: ${usage.totalTokens || 0} (${percentage}%)`),
+      )
+    } else {
+      // Only show token count without percentage if context length not available
+      console.log(
+        chalk.gray(`\n\n[${modelName}] Token: ${usage.totalTokens || 0}`),
+      )
+    }
     if (toolCallsCollected.length === 0) {
       break
     }
