@@ -66,11 +66,11 @@ async function fetchContextLength(): Promise<number> {
       },
     })
     const data = await response.json()
-    
+
     // Try to find the model in different possible response formats
     const modelsArray = data.data || data
     const modelData = modelsArray.find((m: any) => m.id === modelName)
-    
+
     if (modelData) {
       // Check for context_length in various locations
       contextLength = modelData.context_length || 0
@@ -268,9 +268,14 @@ async function runLoop(prompt: string) {
 
     // Display token usage with percentage of context window
     if (contextLength > 0) {
-      const percentage = ((usage.totalTokens || 0) / contextLength * 100).toFixed(1)
+      const percentage = (
+        ((usage.totalTokens || 0) / contextLength) *
+        100
+      ).toFixed(1)
       console.log(
-        chalk.gray(`\n\n[${modelName}] Token: ${usage.totalTokens || 0} (${percentage}%)`),
+        chalk.gray(
+          `\n\n[${modelName}] Token: ${usage.totalTokens || 0} (${percentage}%)`,
+        ),
       )
     } else {
       // Only show token count without percentage if context length not available
