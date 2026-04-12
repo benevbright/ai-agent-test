@@ -2,7 +2,7 @@ import * as fs from "fs"
 import path from "path"
 import type { ModelMessage } from "ai"
 import { homedir } from "os"
-import { readMultiline } from "@toiroakr/read-multiline"
+import { readMultiline } from "@benevbright/read-multiline"
 
 // Helper function to format path, replacing home directory with ~
 export function formatPath(p: string): string {
@@ -168,7 +168,7 @@ export function getSessionFileByIndex(index: number): string | null {
 }
 
 export async function askQuestion(prompt: string): Promise<string> {
-  const [value, error] = await readMultiline("", {
+  const [value, error] = await readMultiline(prompt, {
     prefix: {
       pending: "", // while editing
       submitted: "✔ ", // after submission
@@ -176,10 +176,10 @@ export async function askQuestion(prompt: string): Promise<string> {
       error: "! ",
     },
     linePrefix: "",
-    initialValue: prompt,
     validate: (v) =>
       v.trim() === "" || v === prompt ? "Input cannot be empty" : undefined,
     helpFooter: false,
+    inlinePrompt: true,
     theme: {
       submitRender: "preserve",
       prefix: {
@@ -193,7 +193,7 @@ export async function askQuestion(prompt: string): Promise<string> {
   if (error?.kind === "cancel") {
     return "exit"
   }
-  return value.startsWith(prompt) ? value.substring(prompt.length) : value
+  return value
 }
 
 export async function checkNpmUpdate(): Promise<{
