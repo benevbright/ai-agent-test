@@ -4,6 +4,18 @@ import type { ModelMessage } from "ai"
 import { homedir } from "os"
 import { readMultiline } from "@toiroakr/read-multiline"
 
+// Helper function to format path, replacing home directory with ~
+export function formatPath(p: string): string {
+  const homedirPath = homedir()
+  if (p === homedirPath) {
+    return "~"
+  }
+  if (p.startsWith(homedirPath + "/")) {
+    return p.replace(homedirPath, "~")
+  }
+  return p
+}
+
 // Session file setup
 const sessionDir = path.join(homedir(), ".ai", "sessions")
 if (!fs.existsSync(sessionDir)) {

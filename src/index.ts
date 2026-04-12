@@ -12,6 +12,7 @@ import {
   appendMessageToLog,
   askQuestion,
   checkNpmUpdate,
+  formatPath,
   loadSession,
 } from "./utils/system.js"
 import dotenv from "dotenv"
@@ -251,7 +252,7 @@ async function runLoop(prompt: string) {
 }
 
 async function main() {
-  console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`))
+  console.log(chalk.cyan(`AI Agent Ready! (${formatPath(process.cwd())})\n`))
   const helpText = "interrupt: ESC, debug: debug [num], newline: Shift+Enter"
   console.log(chalk.cyan(helpText))
 
