@@ -47,6 +47,9 @@ export const bashTool = {
       let output = ""
       let stderrOutput = ""
 
+      // Cap output to prevent token bloat (5000 chars = generous limit)
+      const MAX_OUTPUT_LENGTH = 5000
+
       process.stdout.on("data", (data: Buffer) => {
         output += data.toString()
       })
@@ -75,9 +78,14 @@ export const bashTool = {
               }
             }
           }
+          // Cap output for agent loop
+          const cappedOutput = output.length > MAX_OUTPUT_LENGTH
+            ? output.slice(0, MAX_OUTPUT_LENGTH) + `
+... [output truncated at ${MAX_OUTPUT_LENGTH} characters]`
+            : output
           resolve({
             success: true,
-            output: `result: ${output}\n\nPrint this output as they are`,
+            output: `result: ${cappedOutput}\n\nPrint this output as they are`,
           })
         } else {
           console.error(
@@ -100,10 +108,14 @@ export const bashTool = {
               }
             }
           }
+          // Cap stderr output for agent loop
+          const cappedStderr = stderrOutput.length > MAX_OUTPUT_LENGTH
+            ? stderrOutput.slice(0, MAX_OUTPUT_LENGTH) + `\n... [stderr truncated at ${MAX_OUTPUT_LENGTH} characters]`
+            : stderrOutput
           resolve({
             success: false,
             error: `Command failed with code ${code}`,
-            stderr: stderrOutput || undefined,
+            stderr: cappedStderr || undefined,
           })
         }
       })

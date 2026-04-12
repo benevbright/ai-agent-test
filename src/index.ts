@@ -130,9 +130,6 @@ async function runLoop(prompt: string) {
   // Reset interrupt flag
   interruptRequested = false
 
-  // Fetch context length for percentage calculation
-  await fetchContextLength()
-
   // Set up ESC key listener
   const setupEscListener = () => {
     if (process.stdin.isTTY) {
@@ -327,6 +324,10 @@ async function main() {
       Array.from({ length: helpText.length }).fill("=").join("") + "\n",
     ),
   )
+
+  // Fetch context length for percentage calculation
+  await fetchContextLength()
+
   while (true) {
     console.log("")
     const userPrompt = await askQuestion("Prompt: ")
