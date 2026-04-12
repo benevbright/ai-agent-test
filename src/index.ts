@@ -252,9 +252,8 @@ async function runLoop(prompt: string) {
 
 async function main() {
   console.log(chalk.cyan(`AI Agent Ready! (${process.cwd()})\n`))
-  console.log(
-    chalk.cyan("interrupt: ESC, debug: debug [num], newline: Shift+Enter"),
-  )
+  const helpText = "interrupt: ESC, debug: debug [num], newline: Shift+Enter"
+  console.log(chalk.cyan(helpText))
 
   const updateInfo = await checkNpmUpdate()
   if (updateInfo?.show) {
@@ -265,11 +264,7 @@ async function main() {
     )
   }
 
-  console.log(
-    chalk.cyan(
-      "============================================================\n",
-    ),
-  )
+  console.log(chalk.cyan(new Array(helpText.length).fill("=").join("") + "\n"))
   while (true) {
     console.log("")
     const userPrompt = await askQuestion("Prompt: ")
