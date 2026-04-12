@@ -13,8 +13,7 @@ It works well with highend models like MiniMax too (OpenRouter). The agent sends
 - **Extensible Tools**: Built-in tools for file operations, bash execution, web search, and more
   - See [src/tools/](./src/tools/) for all available tools
 - **Interactive CLI**: Real-time chat interface with streaming responses
-- **Debug Mode**: Inspect conversation history and token usage (deprecated, use sessions instead)
-- **Logging**: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress
+- **Session Management**: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress. Agent can also restore previous sessions to continue conversations.
 - **Custom System Prompt**: Create `~/.ai/SYSTEM.md` to provide custom instructions that augment the agent's system prompt
 
 ## 🛠️ Prerequisites
@@ -102,14 +101,6 @@ ai
 ### Additional Environment Variables
 
 - `BRAVE_API_KEY`: (Required) API key for Brave Search for the internet search tool
-
-### CLI Commands
-
-When installed globally, run `ai` to start the interactive CLI:
-
-- Type your prompt and press Enter to start the agent loop
-- `exit` or `quit` to terminate the session
-- ESC key to interrupt the current agent iteration
 
 ### Session Management
 
