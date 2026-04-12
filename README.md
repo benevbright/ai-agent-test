@@ -15,6 +15,7 @@ It works well with highend models like MiniMax (OpenRouter). The agent sends min
 - **Interactive CLI**: Real-time chat interface with streaming responses
 - **Debug Mode**: Inspect conversation history and token usage
 - **Logging**: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress
+- **Custom System Prompt**: Create `~/.ai/SYSTEM.md` to provide custom instructions that augment the agent's system prompt
 
 ## 🛠️ Prerequisites
 

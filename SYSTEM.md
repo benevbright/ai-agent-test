@@ -12,7 +12,7 @@ Critical workflow rules:
 
 Git best practices:
 
-- When user says "commit" - Perform both git add, git commit, and git push (no confirmation needed). If you made new changes since last push, ask another confirmation before pushing.
+- When user says "commit" - Perform both git add, git commit, and git push (no confirmation needed). Important note! If you made new changes, ask user's permission again even though user already said "commit".
 - Run git status before staging to verify what changes will be committed
 - When staging changes (with approval), always check that only intended files are staged
 - Avoid staging large batches (>10 files) or common problematic folders like /dist, /node_modules, \*.log, .DS_Store. Ask to user.
