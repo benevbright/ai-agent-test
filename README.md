@@ -76,7 +76,8 @@ Start CLI with selected model (default is the first model in the array):
 
 ```bash
 # option 1
-ai models 1 # to select the second model (Google Gemini)
+ai models          # List all available models
+ai --model 1       # Select the second model (Google Gemini)
 
 # option 2
 export AI_MODEL_INDEX=1
@@ -116,8 +117,15 @@ When installed globally, run `ai` to start the interactive CLI:
 View and restore previous sessions:
 
 ```bash
-ai sessions ls          # List last 20 sessions with 0-based indexing
-ai sessions 2           # Load and restart from session 2
+ai sessions            # List last 20 sessions with 0-based indexing
+ai --session 2         # Load and restart from session 2
+```
+
+You can also combine model and session options:
+
+```bash
+ai --model 1 --session 2    # Use model 1 and load session 2
+ai -m 1 -s 2                # Short form of the above command
 ```
 
 When loading a session, the conversation history is restored and logged to the current session file.
