@@ -4,7 +4,7 @@
 
 A lightweight, extensible agentic workflow system built with TypeScript and the AI SDK. This project serves as a testbed for implementing mini agentic flows with support for small-sized local LLMs (30B-80B parameters) and few tool integrations.
 
-It works well with highend models like MiniMax (OpenRouter). The agent sends minimum context which means less money spent 💰.
+It works well with highend models like MiniMax too (OpenRouter). The agent sends minimum context which means a lot less money spent 💰.
 
 ## 🌟 Features
 
