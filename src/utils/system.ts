@@ -244,7 +244,7 @@ export async function checkNpmUpdate(): Promise<{
 
     return needsUpdate ? { show: true, currentVersion, latestVersion } : null
   } catch (error) {
-    console.log(`Error checking for npm updates: ${(error as Error).message}`)
+    // console.log(`Error checking for npm updates: ${(error as Error).message}`)
     return null
   }
 }
