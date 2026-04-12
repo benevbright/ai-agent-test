@@ -40,6 +40,9 @@ if (argv[2] === "models") {
   } else if (subCommand) {
     // Set AI_MODEL_INDEX environment variable
     process.env.AI_MODEL_INDEX = subCommand
+  } else {
+    console.log("Usage: ai models <index> or ai models ls")
+    process.exit(1)
   }
 }
 
