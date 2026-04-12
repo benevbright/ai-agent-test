@@ -79,10 +79,12 @@ export const bashTool = {
             }
           }
           // Cap output for agent loop
-          const cappedOutput = output.length > MAX_OUTPUT_LENGTH
-            ? output.slice(0, MAX_OUTPUT_LENGTH) + `
+          const cappedOutput =
+            output.length > MAX_OUTPUT_LENGTH
+              ? output.slice(0, MAX_OUTPUT_LENGTH) +
+                `
 ... [output truncated at ${MAX_OUTPUT_LENGTH} characters]`
-            : output
+              : output
           resolve({
             success: true,
             output: `result: ${cappedOutput}\n\nPrint this output as they are`,
@@ -109,9 +111,11 @@ export const bashTool = {
             }
           }
           // Cap stderr output for agent loop
-          const cappedStderr = stderrOutput.length > MAX_OUTPUT_LENGTH
-            ? stderrOutput.slice(0, MAX_OUTPUT_LENGTH) + `\n... [stderr truncated at ${MAX_OUTPUT_LENGTH} characters]`
-            : stderrOutput
+          const cappedStderr =
+            stderrOutput.length > MAX_OUTPUT_LENGTH
+              ? stderrOutput.slice(0, MAX_OUTPUT_LENGTH) +
+                `\n... [stderr truncated at ${MAX_OUTPUT_LENGTH} characters]`
+              : stderrOutput
           resolve({
             success: false,
             error: `Command failed with code ${code}`,
