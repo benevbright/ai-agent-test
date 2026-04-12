@@ -4,6 +4,8 @@
 
 A lightweight, extensible agentic workflow system built with TypeScript and the AI SDK. This project serves as a testbed for implementing mini agentic flows with support for small-sized local LLMs (30B-80B parameters) and few tool integrations.
 
+It works well with highend models like MiniMax (OpenRouter). The agent sends minimum context which means less money spent 💰.
+
 ## 🌟 Features
 
 - **Agentic Architecture**: Multi-iteration agent loop with tool calling capabilities
@@ -53,6 +55,12 @@ Create a JSON configuration file at `~/.ai/models.json` with an array of model c
     "modelName": "qwen3-coder-next",
     "apiBaseUrl": "http://localhost:1234/v1",
     "apiKey": "dummy"
+  },
+  {
+    "modelApiType": "openai",
+    "modelName": "minimax/minimax-m2.7",
+    "apiBaseUrl": "https://openrouter.ai/api/v1",
+    "apiKey": "your_openrouter_api_key_here"
   },
   {
     "modelApiType": "google",
