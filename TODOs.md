@@ -1,6 +1,6 @@
 ## Roadmap
 
-- 1. [ ] concat ~/.ai/SYSTEM.md and project's .ai/SYSTEM.md to ai-agent's system prompt.
+- 1. [x] find user's machine's ~/.ai/SYSTEM.md file and concat to ai-agent's system prompt.
 - 2. [x] add doc retrival tool. To get latest lib info so the agent can solve tasks more effectively. Not just library, it can be doc for technologies like postgres. so approach should be broader not just like npm library. and check internet_search tool if you can extract logic and have shared code. also improve SYSTEM.md once it's done.
 - 3. [ ] improve loop with testing tools so the agent can complete tasks in better shape.
 

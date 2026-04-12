@@ -5,6 +5,8 @@ import chalk from "chalk"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import fs from "fs"
 import path from "path"
+import { homedir } from "os"
+import { join } from "path"
 import { fileURLToPath } from "url"
 import { dirname } from "path"
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
@@ -52,6 +54,17 @@ if (modelProvider === "google") {
 
 const systemPromptPath = path.join(__dirname, "../SYSTEM.md")
 let systemPrompt = fs.readFileSync(systemPromptPath, "utf-8")
+
+// Check for user's custom SYSTEM.md in ~/.ai/ and append if exists
+const userSystemPromptPath = join(homedir(), ".ai", "SYSTEM.md")
+let userSystemPrompt = ""
+try {
+  userSystemPrompt = fs.readFileSync(userSystemPromptPath, "utf-8")
+  systemPrompt += "\n\n---\n\nUser Custom System Prompt\n\n" + userSystemPrompt
+} catch {
+  // User's SYSTEM.md doesn't exist, which is fine
+}
+
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
   .replace("{pwd}", process.cwd())
