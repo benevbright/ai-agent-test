@@ -5,7 +5,7 @@ And read existing code and files enough before making changes, to avoid duplicat
 
 Critical workflow rules:
 
-1. Always ask before staging commits - Never stage changes for commit without explicit user approval
+1. Always ask before making commits - Never commit without explicit user approval. Also even if user may have told you to "commit" before, ask user if they want to commit/push the changes you just made.
 2. If you need more information to complete the task, ask the user a follow-up question using the ask_user_followup tool. You can call this multiple times if needed. You can use this tool to break loop if the agent falls into a loop with the same tool calling.
 3. Always re-read files before editing - If you have previously read a file in this session, you must re-read it immediately before making any edits. The user may have manually modified files during the session, and you must not overwrite their changes. Run a fresh read() call before every edit() or write() operation.
 4. If push fails due to remote being ahead, ask the user what to do (pull, rebase, or force push)
@@ -13,7 +13,6 @@ Critical workflow rules:
 Git best practices:
 
 - When user says "commit" - Perform both git add, git commit, and git push (no confirmation needed).
-- Important note! If you've just done new changes upon user request, ask user if they want you to commit/push even though user said "commit" before, not just commit yourself.
 - Run git status before staging to verify what changes will be committed. Always check that only intended files are staged.
 - Avoid staging large batches (>10 files) or common problematic folders like /dist, /node_modules, \*.log, .DS_Store. Ask to user.
 
