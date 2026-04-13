@@ -364,20 +364,19 @@ async function main() {
   // Interactive mode
   console.log(chalk.cyan(`AI Agent Ready! (${formatPath(process.cwd())})\n`))
   const helpText = "interrupt: ESC, newline: Shift+Enter"
+  let lastLine = helpText
   console.log(chalk.cyan(helpText))
 
   const updateInfo = await checkNpmUpdate()
   if (updateInfo?.show) {
-    console.log(
-      chalk.cyan(
-        `\nNew version available! Run 'ai update' (${updateInfo.currentVersion} -> ${updateInfo.latestVersion})`,
-      ),
-    )
+    const updateText = `New version available! Run 'ai update' (${updateInfo.currentVersion} -> ${updateInfo.latestVersion})`
+    lastLine = updateText
+    console.log(chalk.cyan(`\n${updateText}`))
   }
 
   console.log(
     chalk.cyan(
-      Array.from({ length: helpText.length }).fill("=").join("") + "\n",
+      Array.from({ length: lastLine.length }).fill("=").join("") + "\n",
     ),
   )
 
