@@ -31,6 +31,11 @@ const args = yargs(hideBin(argv))
     type: "number",
     describe: "Resume with session index from `ai sessions`",
   })
+  .option("system", {
+    alias: "sys",
+    type: "string",
+    describe: "Additional system prompt content to append",
+  })
   .command(
     "models",
     "List all available models",
@@ -118,6 +123,11 @@ if (args.session !== undefined) {
   process.env.AI_SESSION_FILE = sessionFile
 
   console.log(`Loaded session ${sessionIndex} from ${sessionFile}`)
+}
+
+// Handle additional system prompt from --system option
+if (args.system !== undefined) {
+  process.env.AI_SYSTEM_PROMPT = args.system
 }
 
 // Load config after setting model index
