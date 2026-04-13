@@ -10,14 +10,13 @@ See [TODOs.md](./TODOs.md) for roadmap, features in development, and known bugs.
 
 ## 🌟 Features
 
-- **Agentic Architecture**: Multi-iteration agent loop with tool calling capabilities
-- **Local LLM Support**: Connect to any OpenAI-compatible API endpoint or Google Generative AI
-- **Extensible Tools**: Built-in tools for file operations, bash execution, web search, and more
+- Agentic Architecture: Multi-iteration agent loop with tool calling capabilities
+- Local LLM Support: Connect to any OpenAI-compatible API endpoint or Google Generative AI
+- Extensible Tools: Built-in tools for file operations, bash execution, web search, and more
   - See [src/tools/](./src/tools/) for all available tools
-- **Interactive CLI**: Real-time chat interface with streaming responses
-- **Session Management**: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress. Agent can also restore previous sessions to continue conversations.
+- Interactive CLI: Real-time chat interface with streaming responses
+- Session Management: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress. Agent can also restore previous sessions to continue conversations.
 - **Custom System Prompt**: Create `~/.ai/SYSTEM.md` or use `--system` CLI option to provide custom instructions that augment the agent's system prompt
-- **CLI System Prompt**: Use `--system` option to append additional system prompt content directly from CLI
 
 ## 🛠️ Prerequisites
 
