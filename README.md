@@ -104,6 +104,20 @@ ai
 
 - `BRAVE_API_KEY`: (Required) API key for Brave Search for the internet search tool
 - `AI_SYSTEM_PROMPT`: Additional system prompt content (set via `--system` CLI option)
+- `AI_PROMPT`: Single prompt to run and exit (set via `--prompt` CLI option)
+
+### Single Prompt Mode (CI/CD)
+
+Run a single task-loop with a prompt and exit immediately. This is useful for CI/CD pipelines and one-off tasks:
+
+```bash
+ai --prompt "Review the code changes in this PR"
+```
+
+Examples:
+
+- **Quick refactoring**: `ai --prompt "Extract a reusable hook from these components"`
+- **Documentation**: `ai --prompt "Write README for this module"`
 
 ### Session Management
 

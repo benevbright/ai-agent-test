@@ -94,12 +94,14 @@ try {
 } catch {
   // User's SYSTEM.md doesn't exist, which is fine
 }
-
 // Check for additional system prompt from --system CLI option
 const cliSystemPrompt = process.env.AI_SYSTEM_PROMPT || ""
 if (cliSystemPrompt) {
   systemPrompt += "\n\n---\n\nCLI System Prompt\n" + cliSystemPrompt
 }
+
+// Check for single prompt from --prompt CLI option
+const cliPrompt = process.env.AI_PROMPT || ""
 
 // Build file metadata for system prompt
 const currentDirName = path.basename(process.cwd())
@@ -132,8 +134,6 @@ const fileMeta = `
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
   .replace("{filemeta}", fileMeta)
-
-console.log("------", fileMeta)
 
 let interruptRequested = false
 
@@ -344,6 +344,24 @@ async function runLoop(prompt: string) {
 }
 
 async function main() {
+  // Fetch context length for percentage calculation
+  await fetchContextLength()
+
+  if (cliPrompt) {
+    // Single prompt mode: run once and exit
+    try {
+      await runLoop(cliPrompt)
+    } catch (error) {
+      console.error(
+        chalk.red(`Error in single prompt mode: ${(error as Error).message}`),
+      )
+      console.log(JSON.stringify(messages.slice(-10), null, 2))
+      process.exit(1)
+    }
+    process.exit(0)
+  }
+
+  // Interactive mode
   console.log(chalk.cyan(`AI Agent Ready! (${formatPath(process.cwd())})\n`))
   const helpText = "interrupt: ESC, newline: Shift+Enter"
   console.log(chalk.cyan(helpText))
@@ -363,9 +381,6 @@ async function main() {
     ),
   )
 
-  // Fetch context length for percentage calculation
-  await fetchContextLength()
-
   while (true) {
     console.log("")
     const userPrompt = await askQuestion("Prompt: ")
@@ -381,7 +396,7 @@ async function main() {
         chalk.red(`Error in main loop: ${(error as Error).message}`),
       )
       console.log(JSON.stringify(messages.slice(-10), null, 2))
-      throw error
+      process.exit(1)
     }
   }
 }

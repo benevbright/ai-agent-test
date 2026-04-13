@@ -36,6 +36,11 @@ const args = yargs(hideBin(argv))
     type: "string",
     describe: "Additional system prompt content to append",
   })
+  .option("prompt", {
+    alias: "p",
+    type: "string",
+    describe: "Run single task-loop with prompt and exit",
+  })
   .command(
     "models",
     "List all available models",
@@ -128,6 +133,11 @@ if (args.session !== undefined) {
 // Handle additional system prompt from --system option
 if (args.system !== undefined) {
   process.env.AI_SYSTEM_PROMPT = args.system
+}
+
+// Handle single prompt from --prompt option
+if (args.prompt !== undefined) {
+  process.env.AI_PROMPT = args.prompt
 }
 
 // Load config after setting model index
