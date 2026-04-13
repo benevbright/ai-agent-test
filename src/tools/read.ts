@@ -3,9 +3,21 @@ import fs from "fs"
 import path from "path"
 import chalk from "chalk"
 
+function formatLineNumberedOutput(lines: string[], startIndex: number) {
+  const lastLineNumber = startIndex + lines.length
+  const width = String(lastLineNumber).length
+
+  return lines
+    .map((line, index) => {
+      const lineNumber = String(startIndex + index + 1).padStart(width, " ")
+      return `${lineNumber}| ${line}`
+    })
+    .join("\n")
+}
+
 export const readTool = {
   description:
-    "Read a file and return its contents. Useful for viewing source code, configuration files, documentation, or any text-based files.",
+    "Read a file and return its contents. Useful for viewing source code, configuration files, documentation, or any text-based files. You can optionally include line numbers when you need to make precise edits to escape-heavy content.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to read"),
     offset: z
@@ -20,19 +32,27 @@ export const readTool = {
       .describe(
         "Maximum number of lines to read. If not specified, reads the entire file.",
       ),
+    includeLineNumbers: z
+      .boolean()
+      .optional()
+      .describe(
+        "If true, prefix each returned line with its 1-indexed line number. Useful when escaped content makes exact text matching difficult.",
+      ),
   }),
   execute: async ({
     path: filePath,
     offset = 1,
     limit,
+    includeLineNumbers = false,
   }: {
     path: string
     offset?: number
     limit?: number
+    includeLineNumbers?: boolean
   }) => {
     console.log(
       chalk.yellow(
-        `\n[TOOL - read] Reading file: ${filePath} (offset: ${offset}, limit: ${limit ?? "none"})`,
+        `\n[TOOL - read] Reading file: ${filePath} (offset: ${offset}, limit: ${limit ?? "none"}, includeLineNumbers: ${includeLineNumbers})`,
       ),
     )
 
@@ -64,7 +84,9 @@ export const readTool = {
       }
 
       const selectedLines = lines.slice(startIndex, endIndex)
-      const resultContent = selectedLines.join("\n")
+      const resultContent = includeLineNumbers
+        ? formatLineNumberedOutput(selectedLines, startIndex)
+        : selectedLines.join("\n")
 
       let metadata = `\n\n[Read tool metadata:`
       metadata += `\n  File: ${fullPath}`
@@ -73,6 +95,7 @@ export const readTool = {
       if (limit) {
         metadata += `\n  Limit: ${limit}`
       }
+      metadata += `\n  Include line numbers: ${includeLineNumbers}`
       metadata += `\n  Lines returned: ${selectedLines.length}`
       metadata += `\n]`
 

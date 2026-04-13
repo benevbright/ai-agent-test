@@ -98,7 +98,7 @@ try {
 // Check for additional system prompt from --system CLI option
 const cliSystemPrompt = process.env.AI_SYSTEM_PROMPT || ""
 if (cliSystemPrompt) {
-  systemPrompt += "\n\n---\n\nCLI System Prompt:\n" + cliSystemPrompt
+  systemPrompt += "\n\n---\n\nCLI System Prompt\n" + cliSystemPrompt
 }
 
 systemPrompt = systemPrompt
