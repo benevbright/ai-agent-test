@@ -17,6 +17,8 @@ See [TODOs.md](./TODOs.md) for roadmap, features in development, and known bugs.
 - **Interactive CLI**: Real-time chat interface with streaming responses
 - **Session Management**: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress. Agent can also restore previous sessions to continue conversations.
 - **Custom System Prompt**: Create `~/.ai/SYSTEM.md` to provide custom instructions that augment the agent's system prompt
+- **CLI System Prompt**: Use `--system` option to append additional system prompt content directly from CLI
+- **CLI System Prompt**: Use `--system` option to append additional system prompt content directly from CLI
 
 ## 🛠️ Prerequisites
 
@@ -103,6 +105,7 @@ ai
 ### Additional Environment Variables
 
 - `BRAVE_API_KEY`: (Required) API key for Brave Search for the internet search tool
+- `AI_SYSTEM_PROMPT`: Additional system prompt content (set via `--system` CLI option)
 
 ### Session Management
 
@@ -121,3 +124,13 @@ ai -m 1 -s 2                # Short form of the above command
 ```
 
 When loading a session, the conversation history is restored and logged to the current session file.
+
+### Using --system Option
+
+You can append additional system prompt content directly from CLI:
+
+```bash
+ai --system "You are a helpful assistant that provides concise answers."
+```
+
+This is useful for temporary instructions or testing different system prompts without modifying files.
