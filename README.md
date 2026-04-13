@@ -6,6 +6,8 @@ A lightweight, extensible agentic workflow system built with TypeScript and the 
 
 It works well with highend models like MiniMax too (OpenRouter). The agent sends minimum context which means a lot less money spent 💰.
 
+See [TODOs.md](./TODOs.md) for roadmap, features in development, and known bugs.
+
 ## 🌟 Features
 
 - **Agentic Architecture**: Multi-iteration agent loop with tool calling capabilities
