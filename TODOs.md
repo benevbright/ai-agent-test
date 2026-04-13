@@ -14,3 +14,4 @@
 
 - 1. [x] user can backspace to delete even "Prompt: ".
 - 2. [ ] when user input gets to next line, the cursor can't come back to the first line with backspace. Backspace seems actually deleting but it's not visible to user.
+- 3. [ ] edit tool (or read tool) doesn't work well when there is backslash in the content that they need to handle. for example it had `systemPrompt += "\n\n---\n\nCLI System Prompt\n\" + cliSystemPrompt` in the codebase and couldn't resolve it.
