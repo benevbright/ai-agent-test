@@ -16,7 +16,7 @@ See [TODOs.md](./TODOs.md) for roadmap, features in development, and known bugs.
   - See [src/tools/](./src/tools/) for all available tools
 - Interactive CLI: Real-time chat interface with streaming responses
 - Session Management: Session logs are stored in `~/.ai/logs/` to track agent behavior and progress. Agent can also restore previous sessions to continue conversations.
-- **Custom System Prompt**: Create `~/.ai/SYSTEM.md` or use `--system` CLI option to provide custom instructions that augment the agent's system prompt
+- Custom System Prompt: Create `~/.ai/SYSTEM.md` or use `--system` CLI option to provide custom instructions that augment the agent's system prompt
 
 ## 🛠️ Prerequisites
 
