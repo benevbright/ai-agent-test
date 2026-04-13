@@ -101,28 +101,39 @@ if (cliSystemPrompt) {
   systemPrompt += "\n\n---\n\nCLI System Prompt\n" + cliSystemPrompt
 }
 
+// Build file metadata for system prompt
+const currentDirName = path.basename(process.cwd())
+const nestedSameNamePath = path.join(process.cwd(), currentDirName)
+const fileMeta = `
+- Current project: ${process.cwd()}
+- ls: ${fs.readdirSync(process.cwd()).join(", ")}
+- ls src: ${
+  fs.existsSync(path.join(process.cwd(), "src"))
+    ? fs.readdirSync(path.join(process.cwd(), "src")).join(", ")
+    : "not found"
+}
+- ls lib: ${
+  fs.existsSync(path.join(process.cwd(), "lib"))
+    ? fs.readdirSync(path.join(process.cwd(), "lib")).join(", ")
+    : "not found"
+}
+- ls packages: ${
+  fs.existsSync(path.join(process.cwd(), "packages"))
+    ? fs.readdirSync(path.join(process.cwd(), "packages")).join(", ")
+    : "not found"
+}
+- ls ${currentDirName}: ${
+  fs.existsSync(nestedSameNamePath)
+    ? fs.readdirSync(nestedSameNamePath).join(", ")
+    : "not found"
+}
+`
+
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
-  .replace("{pwd}", process.cwd())
-  .replace("{ls}", fs.readdirSync(process.cwd()).join(", "))
-  .replace(
-    "{ls src}",
-    fs.existsSync(path.join(process.cwd(), "src"))
-      ? fs.readdirSync(path.join(process.cwd(), "src")).join(", ")
-      : "not found",
-  )
-  .replace(
-    "{ls lib}",
-    fs.existsSync(path.join(process.cwd(), "lib"))
-      ? fs.readdirSync(path.join(process.cwd(), "lib")).join(", ")
-      : "not found",
-  )
-  .replace(
-    "{ls packages}",
-    fs.existsSync(path.join(process.cwd(), "packages"))
-      ? fs.readdirSync(path.join(process.cwd(), "packages")).join(", ")
-      : "not found",
-  )
+  .replace("{filemeta}", fileMeta)
+
+console.log("------", fileMeta)
 
 let interruptRequested = false
 

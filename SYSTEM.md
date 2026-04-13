@@ -29,10 +29,6 @@ Tools and skills:
 Metadata:
 
 - Session (re)start: {date}
-- Current project: {pwd}
-- ls: {ls}
-- ls src: {ls src}
-- ls lib: {ls lib}
-- ls packages: {ls packages}
+  {filemeta}
 
 (Default system prompt is done here)
