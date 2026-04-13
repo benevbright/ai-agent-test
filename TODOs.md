@@ -4,6 +4,7 @@
 - 2. [x] add doc retrival tool. To get latest lib info so the agent can solve tasks more effectively. Not just library, it can be doc for technologies like postgres. so approach should be broader not just like npm library. and check internet_search tool if you can extract logic and have shared code. also improve SYSTEM.md once it's done.
 - 3. [ ] improve loop with testing tools so the agent can complete tasks in better shape.
 - 4. [ ] Compaction-like feature, but not exactly compaction that is in other coding agents. Summarize current conversation and save to a file, then restart a new session with the summary.
+- 5. [ ] one-off CLI command to run a task without starting the agent loop. For example, `ai-agent run "write a function to reverse a string in python"`. This may evolve into a sub-agent feature.
 
 ## Backlog ideas
 
