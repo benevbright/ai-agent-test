@@ -33,3 +33,5 @@ Metadata:
 - ls: {ls}
 - ls src: {ls src}
 - ls packages: {ls packages}
+
+(Default system prompt is done here)
