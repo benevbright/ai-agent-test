@@ -245,13 +245,16 @@ async function runLoop(prompt: string) {
             `Warning: Missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName})`,
           ),
         )
+        const message = Object.values(toolNames).includes(toolCall.toolName)
+          ? `missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}).`
+          : `the tool call ${toolCall.toolCallId} used an unknown tool (${toolCall.toolName}).`
         toolResultContent.push({
           type: "tool-result",
           toolCallId: toolCall.toolCallId,
           toolName: toolCall.toolName,
           output: {
             type: "text",
-            value: `Tool execution failed: missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}).`,
+            value: `Tool execution failed: ${message}`,
           },
         })
       }
