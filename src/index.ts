@@ -107,14 +107,14 @@ systemPrompt = systemPrompt
   .replace("{ls}", fs.readdirSync(process.cwd()).join(", "))
   .replace(
     "{ls src}",
-    fs.existsSync(path.join(__dirname, "../src"))
-      ? fs.readdirSync(path.join(__dirname, "../src")).join(", ")
+    fs.existsSync(path.join(process.cwd(), "src"))
+      ? fs.readdirSync(path.join(process.cwd(), "src")).join(", ")
       : "not found",
   )
   .replace(
     "{ls packages}",
-    fs.existsSync(path.join(__dirname, "../packages"))
-      ? fs.readdirSync(path.join(__dirname, "../packages")).join(", ")
+    fs.existsSync(path.join(process.cwd(), "packages"))
+      ? fs.readdirSync(path.join(process.cwd(), "packages")).join(", ")
       : "not found",
   )
 
