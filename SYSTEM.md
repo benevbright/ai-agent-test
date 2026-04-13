@@ -32,6 +32,7 @@ Metadata:
 - Current project: {pwd}
 - ls: {ls}
 - ls src: {ls src}
+- ls lib: {ls lib}
 - ls packages: {ls packages}
 
 (Default system prompt is done here)

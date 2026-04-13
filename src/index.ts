@@ -112,6 +112,12 @@ systemPrompt = systemPrompt
       : "not found",
   )
   .replace(
+    "{ls lib}",
+    fs.existsSync(path.join(process.cwd(), "lib"))
+      ? fs.readdirSync(path.join(process.cwd(), "lib")).join(", ")
+      : "not found",
+  )
+  .replace(
     "{ls packages}",
     fs.existsSync(path.join(process.cwd(), "packages"))
       ? fs.readdirSync(path.join(process.cwd(), "packages")).join(", ")
