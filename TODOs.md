@@ -12,5 +12,5 @@
 
 ## Bugs
 
-- 1. [ ] user can backspace to delete even "Prompt: ".
+- 1. [x] user can backspace to delete even "Prompt: ".
 - 2. [ ] when user input gets to next line, the cursor can't come back to the first line with backspace. Backspace seems actually deleting but it's not visible to user.
