@@ -30,4 +30,6 @@ Metadata:
 
 - Session (re)start: {date}
 - Current project: {pwd}
-- Root folder files of the project: {ls}
+- ls: {ls}
+- ls src: {ls src}
+- ls packages: {ls packages}

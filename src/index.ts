@@ -99,6 +99,8 @@ systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
   .replace("{pwd}", process.cwd())
   .replace("{ls}", fs.readdirSync(process.cwd()).join(", "))
+  .replace("{ls src}", fs.existsSync(path.join(__dirname, "../src")) ? fs.readdirSync(path.join(__dirname, "../src")).join(", ") : "not found")
+  .replace("{ls packages}", fs.existsSync(path.join(__dirname, "../packages")) ? fs.readdirSync(path.join(__dirname, "../packages")).join(", ") : "not found")
 
 let interruptRequested = false
 
