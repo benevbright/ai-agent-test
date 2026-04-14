@@ -16,7 +16,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "prepare": "husky",
     "lint": "oxlint . -c .oxlintrc.json --ignore-pattern dist/",
     "prepack": "rm -rf dist && npm run build"
@@ -46,7 +46,8 @@
     "oxlint": "^1.57.0",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.4"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.58",

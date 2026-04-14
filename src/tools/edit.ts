@@ -15,7 +15,13 @@ export interface LineEdit {
   newText: string
 }
 
-export type Edit = ReplaceEdit | LineEdit
+export type Edit = ReplaceEdit[] | LineEdit[]
+
+interface AppliedLineEdit {
+  originalStartLine: number
+  originalEndLine: number
+  lineDelta: number
+}
 
 const replaceEditSchema = z.object({
   oldText: z.string().describe("The exact text for JS's `replace()` function"),
@@ -47,10 +53,62 @@ const lineEditSchema = z.object({
     .describe("The replacement text for the specified line range."),
 })
 
-const editSchema = z.union([replaceEditSchema, lineEditSchema])
-
-function isReplaceEdit(edit: Edit): edit is ReplaceEdit {
+function isReplaceEdit(edit: ReplaceEdit | LineEdit): edit is ReplaceEdit {
   return "oldText" in edit
+}
+
+function validateLineRange(
+  totalLines: number,
+  startLine: number,
+  endLine: number,
+): string | null {
+  if (endLine < startLine) {
+    return `Invalid line range: endLine (${endLine}) must be greater than or equal to startLine (${startLine}).`
+  }
+
+  if (startLine > totalLines) {
+    return `Invalid line range: startLine ${startLine} is beyond the end of the file (${totalLines} lines).`
+  }
+
+  if (endLine > totalLines) {
+    return `Invalid line range: endLine ${endLine} is beyond the end of the file (${totalLines} lines).`
+  }
+
+  return null
+}
+
+function hasOverlappingOriginalRange(
+  edit: LineEdit,
+  appliedLineEdits: AppliedLineEdit[],
+) {
+  const originalEndLine = edit.endLine ?? edit.startLine
+
+  return appliedLineEdits.some((appliedEdit) => {
+    return !(
+      originalEndLine < appliedEdit.originalStartLine ||
+      edit.startLine > appliedEdit.originalEndLine
+    )
+  })
+}
+
+function getAdjustedLineRange(
+  edit: LineEdit,
+  appliedLineEdits: AppliedLineEdit[],
+) {
+  const originalEndLine = edit.endLine ?? edit.startLine
+  const lineOffset = appliedLineEdits.reduce((offset, appliedEdit) => {
+    if (appliedEdit.originalEndLine < edit.startLine) {
+      return offset + appliedEdit.lineDelta
+    }
+
+    return offset
+  }, 0)
+
+  return {
+    startLine: edit.startLine + lineOffset,
+    endLine: originalEndLine + lineOffset,
+    originalEndLine,
+  }
 }
 
 function applyLineEdit(
@@ -61,24 +119,11 @@ function applyLineEdit(
   const startLine = edit.startLine
   const endLine = edit.endLine ?? startLine
 
-  if (endLine < startLine) {
+  const validationError = validateLineRange(lines.length, startLine, endLine)
+  if (validationError) {
     return {
       success: false,
-      error: `Invalid line range: endLine (${endLine}) must be greater than or equal to startLine (${startLine}).`,
-    }
-  }
-
-  if (startLine > lines.length) {
-    return {
-      success: false,
-      error: `Invalid line range: startLine ${startLine} is beyond the end of the file (${lines.length} lines).`,
-    }
-  }
-
-  if (endLine > lines.length) {
-    return {
-      success: false,
-      error: `Invalid line range: endLine ${endLine} is beyond the end of the file (${lines.length} lines).`,
+      error: validationError,
     }
   }
 
@@ -102,18 +147,12 @@ export const editTool = {
   inputSchema: z.object({
     path: z.string().describe("The path to the file to edit"),
     edits: z
-      .array(editSchema)
+      .union([z.array(replaceEditSchema), z.array(lineEditSchema)])
       .describe(
-        "Array of edits to apply. Each edit can be an exact text replacement or a line-range replacement.",
+        "Array of edits to apply. Use either exact text replacements for the whole request or line-range replacements for the whole request.",
       ),
   }),
-  execute: async ({
-    path: filePath,
-    edits,
-  }: {
-    path: string
-    edits: Edit[]
-  }) => {
+  execute: async ({ path: filePath, edits }: { path: string; edits: Edit }) => {
     console.log(
       chalk.yellow(
         `\n[TOOL - edit] Editing file: ${filePath} (edits: ${edits.length})`,
@@ -132,6 +171,7 @@ export const editTool = {
 
       let content = fs.readFileSync(fullPath, "utf-8")
       let editsApplied = 0
+      const appliedLineEdits: AppliedLineEdit[] = []
 
       for (const edit of edits) {
         let newContent = content
@@ -143,7 +183,20 @@ export const editTool = {
             newContent = content.replace(edit.oldText, edit.newText)
           }
         } else {
-          const lineEditResult = applyLineEdit(content, edit)
+          if (hasOverlappingOriginalRange(edit, appliedLineEdits)) {
+            return {
+              success: false,
+              error:
+                "Overlapping line-based edits are not supported in the same request. Merge them into a single line-range edit.",
+            }
+          }
+
+          const adjustedRange = getAdjustedLineRange(edit, appliedLineEdits)
+          const lineEditResult = applyLineEdit(content, {
+            ...edit,
+            startLine: adjustedRange.startLine,
+            endLine: adjustedRange.endLine,
+          })
           if (!lineEditResult.success) {
             return {
               success: false,
@@ -151,6 +204,16 @@ export const editTool = {
             }
           }
           newContent = lineEditResult.content
+
+          const replacedLineCount =
+            adjustedRange.endLine - adjustedRange.startLine + 1
+          const insertedLineCount = edit.newText.split("\n").length
+
+          appliedLineEdits.push({
+            originalStartLine: edit.startLine,
+            originalEndLine: adjustedRange.originalEndLine,
+            lineDelta: insertedLineCount - replacedLineCount,
+          })
         }
 
         if (newContent !== content) {
