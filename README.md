@@ -17,6 +17,7 @@ See [TODOs.md](./TODOs.md) for roadmap, features in development, and known bugs.
 - Interactive CLI: Real-time chat interface with streaming responses
 - Session Management: Session messages are stored in `~/.ai/sessions/` and session can be restored for continued conversations
 - Custom System Prompt: Create `~/.ai/SYSTEM.md` or use `--system` CLI option to provide custom instructions that augment the agent's system prompt
+- One-off Prompt Mode: Run a single prompt loop and exit (ideal for CI/CD pipelines)
 
 ## 🛠️ Prerequisites
 
