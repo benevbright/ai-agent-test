@@ -49,10 +49,10 @@ export function loadConfig(): ModelConfig {
     )
     const sampleConfig = [
       {
-        modelApiType: "openai (openai or google)",
-        modelName: "gpt-4o",
-        apiBaseUrl: "https://api.openai.com/v1",
-        apiKey: "your-api-key-here",
+        modelApiType: "openai",
+        modelName: "minimax/minimax-m2.7",
+        apiBaseUrl: "https://openrouter.ai/api/v1",
+        apiKey: "your_openrouter_api_key_here",
       },
     ]
     console.log(
