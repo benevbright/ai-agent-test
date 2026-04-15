@@ -19,6 +19,7 @@
     "test": "vitest run",
     "prepare": "husky",
     "lint": "oxlint . -c .oxlintrc.json --ignore-pattern dist/",
+    "dev": "tsx -r dotenv/config src/index.ts",
     "prepack": "rm -rf dist && npm run build"
   },
   "author": "Bright Lee <benevbright@gmail.com>",

@@ -22,16 +22,12 @@ import {
   formatPath,
   loadSession,
 } from "./utils/system.js"
-import dotenv from "dotenv"
-
-// Load environment variables from .env file (only in development mode)
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config()
-}
 
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
+
+// Load environment variables from .env file (handled by CLI: npm run dev)
 
 // Helper function to push to messages array and write to log
 function pushMessage(message: ModelMessage) {
