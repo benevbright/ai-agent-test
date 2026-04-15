@@ -38,7 +38,7 @@ export const compilationCheckTool = {
     commands: z
       .union([z.string(), z.array(z.string())])
       .describe(
-        "A compilation check command or an array of commands to execute, e.g., 'npx tsc --noEmit' or ['npm run lint', 'npx tsc --noEmit'] for TypeScript or JavaScript projects",
+        "A compilation check command or an array of commands to execute, e.g., 'npx tsc --noEmit' or ['npx tsc --noEmit', 'npm run lint'] for TypeScript projects",
       ),
     timeout: z
       .number()

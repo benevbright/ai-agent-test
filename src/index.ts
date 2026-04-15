@@ -260,11 +260,7 @@ async function runLoop(prompt: string) {
             toolName: part.toolName,
             output: {
               type: "text",
-              value:
-                output.output +
-                (output.metadata
-                  ? `\n\n[meta: ${JSON.stringify(output.metadata)}]`
-                  : ""),
+              value: JSON.stringify(output),
             },
           })
         } else {
@@ -274,11 +270,7 @@ async function runLoop(prompt: string) {
             toolName: part.toolName,
             output: {
               type: "text",
-              value:
-                output?.stderr ||
-                output?.output ||
-                output?.error ||
-                "Unknown error",
+              value: JSON.stringify(output),
             },
           })
         }

@@ -119,7 +119,7 @@ export const bashTool = {
             logPreview("Output preview", output, chalk.green)
             resolve({
               success: true,
-              output: `result: ${cappedOutput}\n\nPrint this output as they are`,
+              output: `result: ${cappedOutput}`,
             })
           } else {
             console.error(
