@@ -3,11 +3,6 @@ import { join } from "path"
 import { readFileSync } from "fs"
 import chalk from "chalk"
 
-// Load .env only in development mode
-if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config()
-}
-
 export interface ModelConfig {
   modelApiType: "openai" | "google"
   modelName: string
