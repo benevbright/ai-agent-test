@@ -24,8 +24,8 @@ interface AppliedLineEdit {
 }
 
 const replaceEditSchema = z.object({
-  oldText: z.string().describe("The exact text for JS's `replace()` function"),
-  newText: z.string().describe("The new text to insert"),
+  oldText: z.string().describe("Text to find and replace."),
+  newText: z.string().describe("Replacement text."),
   useReplaceAll: z
     .boolean()
     .optional()
@@ -143,14 +143,12 @@ function applyLineEdit(
 
 export const editTool = {
   description:
-    "Make precise, targeted edits to existing files. Use exact text replacement for simple changes, or replace a line range when escaped characters make exact matching unreliable.",
+    "Make targeted edits to existing files. Use text replacement or line ranges.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to edit"),
     edits: z
       .union([z.array(replaceEditSchema), z.array(lineEditSchema)])
-      .describe(
-        "Array of edits to apply. Use either exact text replacements for the whole request or line-range replacements for the whole request.",
-      ),
+      .describe("Array of edits to apply. Use text OR line edits per request."),
   }),
   execute: async ({ path: filePath, edits }: { path: string; edits: Edit }) => {
     console.log(

@@ -2,14 +2,9 @@ import { z } from "zod"
 import chalk from "chalk"
 
 export const recordProgress = {
-  description:
-    "REQUIRED: Call this tool after EVERY tool call to update your progress (0-100). You must call this before calling any other tool and before calling deliver_final_answer.",
+  description: "Track task progress (0-100).",
   inputSchema: z.object({
-    progress: z
-      .number()
-      .describe(
-        "Your current progress as a percentage (0-100). This helps track how close you are to the final answer.",
-      ),
+    progress: z.number().describe("Current progress as a percentage (0-100)."),
   }),
   execute: async ({ progress }: { progress: number }) => {
     console.log(

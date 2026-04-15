@@ -258,7 +258,7 @@ async function resolveCandidateUrls({
 
 export const docRetrieval = {
   description:
-    "Retrieve documentation pages for libraries, frameworks, platforms, databases, and other technologies. This tool can discover official docs automatically, prefers authoritative sources, and reads more content per page than general internet search. Set maxReadBodyLength to 0 to disable truncation.",
+    "Search and retrieve official documentation pages. Prefers authoritative sources.",
   inputSchema: z.object({
     query: z
       .string()
@@ -266,15 +266,11 @@ export const docRetrieval = {
     urls: z
       .array(z.string().url())
       .optional()
-      .describe(
-        "Optional documentation URLs to fetch directly before searching.",
-      ),
+      .describe("Direct doc URLs to fetch."),
     preferredDomains: z
       .array(z.string())
       .optional()
-      .describe(
-        "Optional preferred domains such as react.dev or postgresql.org.",
-      ),
+      .describe("Preferred domains (e.g., react.dev, postgresql.org)."),
     maxResults: z
       .number()
       .max(5)
@@ -285,9 +281,7 @@ export const docRetrieval = {
       .number()
       .default(12000)
       .optional()
-      .describe(
-        "Approximate characters to return from each page after extraction. Use 0 for no truncation.",
-      ),
+      .describe("Characters per page. 0 = no truncation."),
   }),
   execute: async ({
     query,

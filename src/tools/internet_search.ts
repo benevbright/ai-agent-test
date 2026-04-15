@@ -3,8 +3,7 @@ import chalk from "chalk"
 import { searchWeb, tryFetchExtractedPageContent } from "./web_retrieval.js"
 
 export const internetSearch = {
-  description:
-    "Search the internet. IMPORTANT: If the 'output' is truncated or missing key details, call this tool again with a significantly higher 'maxReadBodyLength' (e.g., 5000 or 10000) to see more content.",
+  description: "Search the internet for general queries.",
   inputSchema: z.object({
     query: z.string().describe("The search query"),
     searchCount: z
@@ -12,15 +11,11 @@ export const internetSearch = {
       .max(5)
       .default(3)
       .optional()
-      .describe(
-        "Number of search results to return (default 3, max 5). More results may provide more information but will take longer to fetch and process.",
-      ),
+      .describe("Number of results (max 5)."),
     maxReadBodyLength: z
       .number()
       .default(2500)
-      .describe(
-        "Number of characters to return from the fetched webpage body content. recommend to start with 2500",
-      ),
+      .describe("Characters per page to return."),
   }),
   execute: async ({
     searchCount,

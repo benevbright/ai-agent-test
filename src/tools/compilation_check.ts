@@ -33,20 +33,16 @@ function logPreview(
 
 export const compilationCheckTool = {
   description:
-    "Run a compilation check command to verify code quality and catch errors. Useful for TypeScript (npm run lint && npx tsc --noEmit), JavaScript (npm run lint or similar), or other languages. This helps ensure changes don't break the build before committing.",
+    "Run linting/type checking commands to catch errors before committing.",
   inputSchema: z.object({
     commands: z
       .union([z.string(), z.array(z.string())])
-      .describe(
-        "A compilation check command or an array of commands to execute, e.g., 'npx tsc --noEmit' or ['npx tsc --noEmit', 'npm run lint'] for TypeScript projects",
-      ),
+      .describe("Lint/type check command(s), e.g., 'npx tsc --noEmit'."),
     timeout: z
       .number()
       .optional()
       .default(60)
-      .describe(
-        "Timeout in seconds for the compilation check (default: 60). Set to null or 0 for no timeout.",
-      ),
+      .describe("Timeout in seconds. 0 = no timeout."),
   }),
   execute: async ({
     commands,

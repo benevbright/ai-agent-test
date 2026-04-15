@@ -30,18 +30,14 @@ function logPreview(
 }
 
 export const bashTool = {
-  description: `Execute a bash command and return its output. This should be useful to find which files to read when exploring the codebase, find variables, and run CLI tools or bash commands.
-    - avoid running commands that may print a lot of output. e.g) ls -R.
-    `,
+  description: `Execute a bash command and return its output. This should be useful to find which files to read when exploring the codebase, find variables, and run CLI tools or bash commands.`,
   inputSchema: z.object({
     command: z.string().describe("The bash command to execute"),
     timeout: z
       .number()
       .optional()
       .default(10)
-      .describe(
-        "Timeout in seconds for the command execution (default: 10). Set to null or 0 for no timeout.",
-      ),
+      .describe("Timeout in seconds. 0 = no timeout."),
   }),
   execute: async ({
     command,

@@ -17,21 +17,17 @@ function formatLineNumberedOutput(lines: string[], startIndex: number) {
 
 export const readTool = {
   description:
-    "Read a file and return its contents. Useful for viewing source code, configuration files, documentation, or any text-based files. You can optionally include line numbers when you need to make precise edits to escape-heavy content.",
+    "Read a file and return its contents. Use includeLineNumbers for precise text matching.",
   inputSchema: z.object({
     path: z.string().describe("The path to the file to read"),
     offset: z
       .number()
       .optional()
-      .describe(
-        "The line number to start reading from (1-indexed). Default is 1 (start of file).",
-      ),
+      .describe("1-indexed line number to start from."),
     limit: z
       .number()
       .optional()
-      .describe(
-        "Maximum number of lines to read. If not specified, reads the entire file.",
-      ),
+      .describe("Max lines to read. Omit for entire file."),
     includeLineNumbers: z
       .boolean()
       .optional()
