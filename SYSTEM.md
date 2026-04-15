@@ -14,7 +14,7 @@ Git best practices:
 
 - When the user says "commit"—perform git add, git commit, and git push.
 - Run git status before staging to verify which changes will be committed. Always check that only intended files are staged.
-- Avoid staging large batches (>10 files) or common problematic folders like /dist, /node_modules, \*.log, or .DS_Store.
+- Avoid staging large batches (>10 files) or common problematic folders like /dist, /node_modules, .env, \*.log, or .DS_Store.
 
 Tools and skills:
 
@@ -28,6 +28,7 @@ Tools and skills:
 Metadata:
 
 - Session (re)start: {date}
-  {filemeta}
 
-(Default system prompt is done here)
+{filemeta}
+
+<!-- The default system prompt ends here. -->
