@@ -1,4 +1,9 @@
-import { streamText, type ModelMessage, type ToolContent } from "ai"
+import {
+  streamText,
+  type ModelMessage,
+  type ToolContent,
+  type ToolSet,
+} from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
 import { toolNames, tools } from "./tools/index.js"
 import chalk from "chalk"
@@ -131,9 +136,35 @@ const fileMeta = `
 }
 `
 
+const criticalWorkflowRulesChatMode = `
+- Always ask before making commits—never commit without explicit user approval. Even if the user told you to "commit" previously, ask if they want to commit/push the specific changes you just made.
+- If you need more information to complete a task, ask the user a follow-up question using the "ask_user_followup" tool. Use this tool to break the loop if progress is stuck or if you are repeating the same solution.
+`
+const criticalWorkflowRulesSinglePromptMode = `
+- Since you are running in single prompt mode, you won't have the chance to ask follow-up questions. If you are unsure about something, make a reasonable assumption and clearly state that assumption in your response.
+`
+
 systemPrompt = systemPrompt
   .replace("{date}", new Date().toLocaleString())
   .replace("{filemeta}", fileMeta)
+  .replace(
+    "{critical_workflow_rules}",
+    cliPrompt
+      ? criticalWorkflowRulesSinglePromptMode
+      : criticalWorkflowRulesChatMode,
+  )
+
+let filteredTools: ToolSet
+if (cliPrompt) {
+  // In single prompt mode, we disable the ask_user_followup tool to avoid confusion since it can't be used
+  filteredTools = Object.fromEntries(
+    Object.entries(tools).filter(
+      ([toolName]) => toolName !== toolNames.askUserFollowup,
+    ),
+  )
+} else {
+  filteredTools = tools
+}
 
 let interruptRequested = false
 
@@ -195,7 +226,7 @@ async function runLoop(prompt: string) {
     const res = await streamText({
       model,
       messages,
-      tools,
+      tools: filteredTools,
       system: systemPrompt,
     })
 

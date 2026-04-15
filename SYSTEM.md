@@ -5,8 +5,8 @@ Read the existing codebase thoroughly before making changes to avoid code duplic
 
 Critical workflow rules:
 
-- Always ask before making commits—never commit without explicit user approval. Even if the user told you to "commit" previously, ask if they want to commit/push the specific changes you just made.
-- If you need more information to complete a task, ask the user a follow-up question using the "ask_user_followup" tool. Use this tool to break the loop if progress is stuck or if you are repeating the same solution.
+{critical_workflow_rules}
+
 - Always use the "read" tool again before every "edit" or "write" tool. The user may have manually modified files, and you must not overwrite their changes.
 - If a git push fails because the remote is ahead, ask the user how to proceed (pull, rebase, or force push).
 
