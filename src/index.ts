@@ -24,8 +24,10 @@ import {
 } from "./utils/system.js"
 import dotenv from "dotenv"
 
-// Load environment variables from .env file
-dotenv.config()
+// Load environment variables from .env file (only in development mode)
+if (process.env.NODE_ENV !== "production") {
+  dotenv.config()
+}
 
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url)
