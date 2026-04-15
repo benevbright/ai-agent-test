@@ -1,6 +1,35 @@
 import { z } from "zod"
-import { execSync } from "child_process"
+import { spawn } from "child_process"
 import chalk from "chalk"
+
+function capOutput(value: string, maxLength: number, label: string) {
+  return value.length > maxLength
+    ? value.slice(0, maxLength) +
+        `\n... [${label} truncated at ${maxLength} characters]`
+    : value
+}
+
+function logPreview(
+  label: string,
+  value: string,
+  color: (text: string) => string,
+) {
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return
+  }
+
+  const lines = trimmed.split("\n")
+  console.log(color(`[TOOL - compilationCheck] ${label}: ${lines[0]}...`))
+  if (lines.length > 1) {
+    console.log(color(`[TOOL - compilationCheck] ${lines[1]}...`))
+    if (lines.length > 2) {
+      console.log(
+        color(`[TOOL - compilationCheck] and ${lines.length - 2} more line(s)`),
+      )
+    }
+  }
+}
 
 export const compilationCheckTool = {
   description:
@@ -11,48 +40,160 @@ export const compilationCheckTool = {
       .describe(
         "A compilation check command or an array of commands to execute, e.g., 'npx tsc --noEmit' or ['npm run lint', 'npx tsc --noEmit'] for TypeScript or JavaScript projects",
       ),
+    timeout: z
+      .number()
+      .optional()
+      .default(60)
+      .describe(
+        "Timeout in seconds for the compilation check (default: 60). Set to null or 0 for no timeout.",
+      ),
   }),
-  execute: async ({ commands }: { commands: string | string[] }) => {
+  execute: async ({
+    commands,
+    timeout,
+  }: {
+    commands: string | string[]
+    timeout?: number
+  }) => {
     const commandList = Array.isArray(commands) ? commands : [commands]
+    const command = commandList.join(" && ")
     console.log(
       chalk.yellow(
-        `\n[TOOL - compilationCheck] Running compilation checks: ${commandList.join(" && ")}`,
+        `\n[TOOL - compilationCheck] Running compilation checks (timeout: ${timeout}s): ${command}`,
       ),
     )
-    try {
-      const result = execSync(commandList.join(" && "), {
-        encoding: "utf-8",
-        stdio: "pipe",
+
+    return new Promise((resolve) => {
+      const childProcess = spawn("bash", ["-c", command], {
+        stdio: ["pipe", "pipe", "pipe"] as const,
       })
 
-      if (result.includes("error") || result.includes("Error")) {
-        console.warn(
-          chalk.yellow(
-            `[TOOL - compilationCheck] ⚠️ Compilation check found issues.`,
-          ),
-        )
-        return {
-          success: false,
-          output: "Compilation check found errors:\n" + result,
+      const MAX_OUTPUT_LENGTH = 5000
+      let output = ""
+      let stderrOutput = ""
+      let isResolved = false
+      let didTimeout = false
+      let timeoutId: NodeJS.Timeout | null = null
+
+      const markResolved = () => {
+        if (!isResolved) {
+          isResolved = true
+          if (timeoutId) {
+            clearTimeout(timeoutId)
+          }
         }
       }
 
-      return {
-        success: true,
-        output: "Compilation check passed successfully.\n" + result,
-      }
-    } catch (error: any) {
-      console.error(
-        chalk.red(
-          `[TOOL - compilationCheck] ⚠️ Compilation check failed: ${error.message}`,
-        ),
+      childProcess.stdout.on("data", (data: Buffer) => {
+        output += data.toString()
+      })
+
+      childProcess.stderr.on("data", (data: Buffer) => {
+        stderrOutput += data.toString()
+      })
+
+      childProcess.on(
+        "close",
+        (code: number | null, signal: NodeJS.Signals | null) => {
+          markResolved()
+          const cappedOutput = capOutput(output, MAX_OUTPUT_LENGTH, "output")
+          const cappedStderr = capOutput(
+            stderrOutput,
+            MAX_OUTPUT_LENGTH,
+            "stderr",
+          )
+
+          if (didTimeout) {
+            if (output.trim()) {
+              logPreview("Output preview", output, chalk.yellow)
+            }
+            if (stderrOutput.trim()) {
+              logPreview("Stderr preview", stderrOutput, chalk.red)
+            }
+            resolve({
+              success: false,
+              error: `Compilation check timed out after ${timeout} seconds`,
+              output: cappedOutput || undefined,
+              stderr:
+                cappedStderr ||
+                `Process was terminated due to timeout${signal ? ` (${signal})` : ""}.`,
+            })
+            return
+          }
+
+          if (code === 0) {
+            if (output.trim()) {
+              logPreview("Output preview", output, chalk.green)
+            }
+            if (stderrOutput.trim()) {
+              logPreview("Stderr preview", stderrOutput, chalk.yellow)
+            }
+
+            const sections = [
+              output.trim() ? output.trimEnd() : "",
+              stderrOutput.trim()
+                ? `Warnings or stderr output:\n${stderrOutput.trimEnd()}`
+                : "",
+            ].filter(Boolean)
+
+            resolve({
+              success: true,
+              output:
+                "Compilation check passed successfully." +
+                (sections.length > 0 ? `\n${sections.join("\n\n")}` : ""),
+            })
+            return
+          }
+
+          console.error(
+            chalk.red(
+              `[TOOL - compilationCheck] ⚠️ Compilation check failed with code ${code}${signal ? ` (signal: ${signal})` : ""}`,
+            ),
+          )
+          if (stderrOutput.trim()) {
+            logPreview("Stderr preview", stderrOutput, chalk.red)
+          } else if (output.trim()) {
+            logPreview("Stdout preview", output, chalk.yellow)
+          }
+
+          resolve({
+            success: false,
+            error: `Compilation check failed with code ${code}`,
+            output: cappedOutput || undefined,
+            stderr: cappedStderr || undefined,
+          })
+        },
       )
-      return {
-        success: false,
-        error: error.message,
-        output: error.stdout?.toString() || "",
-        stderr: error.stderr?.toString() || "",
+
+      childProcess.on("error", (error: Error) => {
+        markResolved()
+        console.error(
+          chalk.red(
+            `[TOOL - compilationCheck] ⚠️ Compilation check failed: ${error.message}`,
+          ),
+        )
+        resolve({
+          success: false,
+          error: error.message,
+          output: output || undefined,
+          stderr: stderrOutput || undefined,
+        })
+      })
+
+      if (timeout && timeout > 0) {
+        const timeoutMs = timeout * 1000
+        timeoutId = setTimeout(() => {
+          if (!isResolved && !childProcess.killed) {
+            didTimeout = true
+            console.error(
+              chalk.red(
+                `[TOOL - compilationCheck] ⚠️ Compilation check timed out after ${timeout} seconds`,
+              ),
+            )
+            childProcess.kill("SIGTERM")
+          }
+        }, timeoutMs)
       }
-    }
+    })
   },
 }

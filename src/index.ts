@@ -274,7 +274,11 @@ async function runLoop(prompt: string) {
             toolName: part.toolName,
             output: {
               type: "text",
-              value: output?.stderr || output?.error || "Unknown error",
+              value:
+                output?.stderr ||
+                output?.output ||
+                output?.error ||
+                "Unknown error",
             },
           })
         }
