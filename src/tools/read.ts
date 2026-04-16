@@ -2,6 +2,7 @@ import { z } from "zod"
 import fs from "fs"
 import path from "path"
 import chalk from "chalk"
+import type { ToolDefinition } from "./types.js"
 
 function formatLineNumberedOutput(lines: string[], startIndex: number) {
   const lastLineNumber = startIndex + lines.length
@@ -15,7 +16,12 @@ function formatLineNumberedOutput(lines: string[], startIndex: number) {
     .join("\n")
 }
 
-export const readTool = {
+export const readTool: ToolDefinition<{
+  path: string
+  offset?: number
+  limit?: number
+  includeLineNumbers?: boolean
+}> = {
   description:
     "Read a file and return its contents. Use includeLineNumbers for precise text matching.",
   inputSchema: z.object({
@@ -59,7 +65,7 @@ export const readTool = {
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
-          error: `File not found: ${fullPath}`,
+          value: `File not found: ${fullPath}`,
         }
       }
 
@@ -75,7 +81,7 @@ export const readTool = {
       if (startIndex >= lines.length) {
         return {
           success: true,
-          output: `File "${fullPath}" has ${lines.length} lines. Offset ${offset} is beyond file end.`,
+          value: `File "${fullPath}" has ${lines.length} lines. Offset ${offset} is beyond file end.`,
         }
       }
 
@@ -97,7 +103,7 @@ export const readTool = {
 
       return {
         success: true,
-        output: resultContent + metadata,
+        value: resultContent + metadata,
       }
     } catch (error: any) {
       console.error(
@@ -105,7 +111,7 @@ export const readTool = {
       )
       return {
         success: false,
-        error: error.message,
+        value: error.message,
       }
     }
   },

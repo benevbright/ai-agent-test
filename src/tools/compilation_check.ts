@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { spawn } from "child_process"
 import chalk from "chalk"
+import type { ToolDefinition, ToolResult } from "./types.js"
 
 function capOutput(value: string, maxLength: number, label: string) {
   return value.length > maxLength
@@ -31,7 +32,10 @@ function logPreview(
   }
 }
 
-export const compilationCheckTool = {
+export const compilationCheckTool: ToolDefinition<{
+  commands: string | string[]
+  timeout?: number
+}> = {
   description:
     "Run linting/type checking commands to catch errors before committing.",
   inputSchema: z.object({
@@ -41,7 +45,7 @@ export const compilationCheckTool = {
     timeout: z
       .number()
       .optional()
-      .default(60)
+      .default(20)
       .describe("Timeout in seconds. 0 = no timeout."),
   }),
   execute: async ({
@@ -59,7 +63,7 @@ export const compilationCheckTool = {
       ),
     )
 
-    return new Promise((resolve) => {
+    return new Promise<ToolResult>((resolve) => {
       const childProcess = spawn("bash", ["-c", command], {
         stdio: ["pipe", "pipe", "pipe"] as const,
       })
@@ -108,11 +112,13 @@ export const compilationCheckTool = {
             }
             resolve({
               success: false,
-              error: `Compilation check timed out after ${timeout} seconds`,
-              output: cappedOutput || undefined,
-              stderr:
-                cappedStderr ||
-                `Process was terminated due to timeout${signal ? ` (${signal})` : ""}.`,
+              value: [
+                `Compilation check timed out after ${timeout} seconds`,
+                cappedOutput ? `Output:\n${cappedOutput}` : "",
+                `Stderr:\n${cappedStderr || `Process was terminated due to timeout${signal ? ` (${signal})` : ""}.`}`,
+              ]
+                .filter(Boolean)
+                .join("\n\n"),
             })
             return
           }
@@ -134,7 +140,7 @@ export const compilationCheckTool = {
 
             resolve({
               success: true,
-              output:
+              value:
                 "Compilation check passed successfully." +
                 (sections.length > 0 ? `\n${sections.join("\n\n")}` : ""),
             })
@@ -154,9 +160,13 @@ export const compilationCheckTool = {
 
           resolve({
             success: false,
-            error: `Compilation check failed with code ${code}`,
-            output: cappedOutput || undefined,
-            stderr: cappedStderr || undefined,
+            value: [
+              `Compilation check failed with code ${code}`,
+              cappedOutput ? `Output:\n${cappedOutput}` : "",
+              cappedStderr ? `Stderr:\n${cappedStderr}` : "",
+            ]
+              .filter(Boolean)
+              .join("\n\n"),
           })
         },
       )
@@ -170,9 +180,13 @@ export const compilationCheckTool = {
         )
         resolve({
           success: false,
-          error: error.message,
-          output: output || undefined,
-          stderr: stderrOutput || undefined,
+          value: [
+            error.message,
+            output ? `Output:\n${output}` : "",
+            stderrOutput ? `Stderr:\n${stderrOutput}` : "",
+          ]
+            .filter(Boolean)
+            .join("\n\n"),
         })
       })
 

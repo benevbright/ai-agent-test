@@ -1,8 +1,13 @@
 import { z } from "zod"
 import chalk from "chalk"
 import { searchWeb, tryFetchExtractedPageContent } from "./web_retrieval.js"
+import type { ToolDefinition } from "./types.js"
 
-export const internetSearch = {
+export const internetSearch: ToolDefinition<{
+  searchCount: number
+  query: string
+  maxReadBodyLength: number
+}> = {
   description: "Search the internet for general queries.",
   inputSchema: z.object({
     query: z.string().describe("The search query"),
@@ -37,7 +42,7 @@ export const internetSearch = {
       console.log(chalk.red(`\n[TOOL - internet_search] ⚠️ ${error.message}`))
       return {
         success: false,
-        error: error.message,
+        value: error.message,
       }
     }
 
@@ -45,7 +50,7 @@ export const internetSearch = {
     if (!results || "error" in results) {
       return {
         success: false,
-        error: results?.error || "No search results found",
+        value: results?.error || "No search results found",
       }
     }
 
@@ -55,7 +60,7 @@ export const internetSearch = {
       )
       return {
         success: false,
-        error: "No search results found",
+        value: "No search results found",
       }
     }
 
@@ -111,11 +116,7 @@ export const internetSearch = {
 
     return {
       success: true,
-      output: `${output}\n\n[Content limited to about ${maxReadBodyLength} characters per page. Increase maxReadBodyLength if needed.]`,
-      metadata: {
-        maxReadBodyLength,
-        resultCount: contents.length,
-      },
+      value: `${output}\n\n[Content limited to about ${maxReadBodyLength} characters per page. Increase maxReadBodyLength if needed.]`,
     }
   },
 }

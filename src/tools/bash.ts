@@ -1,6 +1,7 @@
 import { z } from "zod"
 import { spawn } from "child_process"
 import chalk from "chalk"
+import type { ToolDefinition, ToolResult } from "./types.js"
 
 function capOutput(value: string, maxLength: number, label: string) {
   return value.length > maxLength
@@ -29,7 +30,7 @@ function logPreview(
   }
 }
 
-export const bashTool = {
+export const bashTool: ToolDefinition<{ command: string; timeout?: number }> = {
   description: `Execute a bash command and return its output. This should be useful to find which files to read when exploring the codebase, find variables, and run CLI tools or bash commands.
     - avoid running commands that may print a lot of output. e.g) ls -R.
     `,
@@ -53,7 +54,7 @@ export const bashTool = {
         `\n[TOOL - bash] Executing command (timeout: ${timeout}s): ${command}`,
       ),
     )
-    return new Promise((resolve) => {
+    return new Promise<ToolResult>((resolve) => {
       const childProcess = spawn("bash", ["-c", command], {
         stdio: ["pipe", "pipe", "pipe"] as any,
       })
@@ -104,11 +105,13 @@ export const bashTool = {
             }
             resolve({
               success: false,
-              error: `Command timed out after ${timeout} seconds`,
-              output: cappedOutput || undefined,
-              stderr:
-                cappedStderr ||
-                `Process was terminated due to timeout${signal ? ` (${signal})` : ""}.`,
+              value: [
+                `Command timed out after ${timeout} seconds`,
+                cappedOutput ? `Output:\n${cappedOutput}` : "",
+                `Stderr:\n${cappedStderr || `Process was terminated due to timeout${signal ? ` (${signal})` : ""}.`}`,
+              ]
+                .filter(Boolean)
+                .join("\n\n"),
             })
             return
           }
@@ -117,7 +120,7 @@ export const bashTool = {
             logPreview("Output preview", output, chalk.green)
             resolve({
               success: true,
-              output: `result: ${cappedOutput}`,
+              value: `result: ${cappedOutput}`,
             })
           } else {
             console.error(
@@ -132,9 +135,13 @@ export const bashTool = {
             }
             resolve({
               success: false,
-              error: `Command failed with code ${code}`,
-              output: cappedOutput || undefined,
-              stderr: cappedStderr || undefined,
+              value: [
+                `Command failed with code ${code}`,
+                cappedOutput ? `Output:\n${cappedOutput}` : "",
+                cappedStderr ? `Stderr:\n${cappedStderr}` : "",
+              ]
+                .filter(Boolean)
+                .join("\n\n"),
             })
           }
         },
@@ -147,8 +154,7 @@ export const bashTool = {
         )
         resolve({
           success: false,
-          error: error.message,
-          stderr: undefined,
+          value: error.message,
         })
       })
 

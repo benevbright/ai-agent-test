@@ -5,7 +5,7 @@ import {
   type ToolSet,
 } from "ai"
 import { createOpenAI } from "@ai-sdk/openai"
-import { toolNames, tools } from "./tools/index.js"
+import { toolNames, tools, type ToolResult } from "./tools/index.js"
 import chalk from "chalk"
 import type { LanguageModelV3 } from "@ai-sdk/provider"
 import fs from "fs"
@@ -159,7 +159,7 @@ if (cliPrompt) {
     Object.entries(tools).filter(
       ([toolName]) => toolName !== toolNames.askUserFollowup,
     ),
-  )
+  ) as ToolSet
 } else {
   filteredTools = tools
 }
@@ -231,6 +231,10 @@ async function runLoop(prompt: string) {
     let fullText = ""
     const toolCallsCollected: any[] = []
     const toolResultContent: ToolContent = []
+    const toolResultsByCallId = new Map<string, ToolResult>()
+
+    const formatToolResultMessage = (result: ToolResult) =>
+      `Status: ${result.success ? "success" : "failure"}\n${result.value}`
 
     for await (const part of res.fullStream) {
       if (interruptRequested) {
@@ -252,28 +256,25 @@ async function runLoop(prompt: string) {
           input: part.input,
         })
       } else if (part.type === "tool-result") {
-        const output = (part as any).output
-        if (output && output.success) {
-          toolResultContent.push({
-            type: "tool-result",
-            toolCallId: part.toolCallId,
-            toolName: part.toolName,
-            output: {
-              type: "text",
-              value: JSON.stringify(output),
-            },
-          })
-        } else {
-          toolResultContent.push({
-            type: "tool-result",
-            toolCallId: part.toolCallId,
-            toolName: part.toolName,
-            output: {
-              type: "text",
-              value: JSON.stringify(output),
-            },
-          })
+        const output = (part as any).output as Partial<ToolResult> | undefined
+        const normalizedResult: ToolResult = {
+          success: output?.success === true,
+          value:
+            typeof output?.value === "string"
+              ? output.value
+              : "Tool returned an invalid result payload.",
         }
+
+        toolResultsByCallId.set(part.toolCallId, normalizedResult)
+        toolResultContent.push({
+          type: "tool-result",
+          toolCallId: part.toolCallId,
+          toolName: part.toolName,
+          output: {
+            type: "text",
+            value: formatToolResultMessage(normalizedResult),
+          },
+        })
       }
     }
 
@@ -290,13 +291,18 @@ async function runLoop(prompt: string) {
         const message = Object.values(toolNames).includes(toolCall.toolName)
           ? `missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}).`
           : `the tool call ${toolCall.toolCallId} used an unknown tool (${toolCall.toolName}).`
+        const normalizedResult: ToolResult = {
+          success: false,
+          value: `Tool execution failed: ${message}`,
+        }
+        toolResultsByCallId.set(toolCall.toolCallId, normalizedResult)
         toolResultContent.push({
           type: "tool-result",
           toolCallId: toolCall.toolCallId,
           toolName: toolCall.toolName,
           output: {
             type: "text",
-            value: `Tool execution failed: ${message}`,
+            value: formatToolResultMessage(normalizedResult),
           },
         })
       }
@@ -346,15 +352,22 @@ async function runLoop(prompt: string) {
     if (toolCallsCollected.length === 0) {
       break
     }
-    const progressRes = toolResultContent.find(
-      (result) => (result as any).toolName === toolNames.recordProgress,
-    )
-    if (progressRes && (progressRes as any).output?.value === 100) {
+    const hasCompletedProgress = toolCallsCollected.some((toolCall) => {
+      if (toolCall.toolName !== toolNames.recordProgress) {
+        return false
+      }
+
+      const result = toolResultsByCallId.get(toolCall.toolCallId)
+      return result?.success === true && result.value === "100"
+    })
+    if (hasCompletedProgress) {
       console.log("\nTask completed with 100% progress!")
       break
     }
-    const followUpRes = toolResultContent.find(
-      (result) => (result as any).toolName === toolNames.askUserFollowup,
+    const followUpRes = toolCallsCollected.find(
+      (toolCall) =>
+        toolCall.toolName === toolNames.askUserFollowup &&
+        toolResultsByCallId.has(toolCall.toolCallId),
     )
     if (followUpRes) {
       console.log(chalk.yellow("\n--- Waiting for user input ---"))

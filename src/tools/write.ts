@@ -2,8 +2,9 @@ import { z } from "zod"
 import fs from "fs"
 import path from "path"
 import chalk from "chalk"
+import type { ToolDefinition } from "./types.js"
 
-export const writeTool = {
+export const writeTool: ToolDefinition<{ path: string; content: string }> = {
   description:
     "Overwrite file with new content. Use for creating new files or full replacement. For targeted edits, use edit.ts instead.",
   inputSchema: z.object({
@@ -32,11 +33,7 @@ export const writeTool = {
 
       return {
         success: true,
-        output: `File "${fullPath}" written successfully.`,
-        metadata: {
-          path: fullPath,
-          size: content.length,
-        },
+        value: `File "${fullPath}" written successfully.\nSize: ${content.length} bytes`,
       }
     } catch (error: any) {
       console.error(
@@ -44,7 +41,7 @@ export const writeTool = {
       )
       return {
         success: false,
-        error: error.message,
+        value: error.message,
       }
     }
   },

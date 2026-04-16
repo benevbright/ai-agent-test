@@ -7,7 +7,7 @@ import { readTool } from "./read.js"
 import { writeTool } from "./write.js"
 import { editTool } from "./edit.js"
 import { compilationCheckTool } from "./compilation_check.js"
-import type { ToolSet } from "ai"
+import type { ToolRegistry, ToolResult } from "./types.js"
 
 export const toolNames = {
   askUserFollowup: "ask_user_followup",
@@ -31,4 +31,6 @@ export const tools = {
   [toolNames.write]: writeTool,
   [toolNames.edit]: editTool,
   [toolNames.compilationCheck]: compilationCheckTool,
-} as const satisfies ToolSet
+} as const satisfies ToolRegistry
+
+export type { ToolResult }

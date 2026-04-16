@@ -1,7 +1,8 @@
 import { z } from "zod"
 import chalk from "chalk"
+import type { ToolDefinition } from "./types.js"
 
-export const askUserFollowup = {
+export const askUserFollowup: ToolDefinition<{ question: string }> = {
   description:
     "Ask the user for clarification when their request is ambiguous or missing details.",
   inputSchema: z.object({
@@ -12,6 +13,6 @@ export const askUserFollowup = {
   }),
   execute: async ({ question }: { question: string }) => {
     console.log(chalk.yellow(`\n[TOOL - ask_user_followup] ${question}`))
-    return { success: true, output: `Asked user: ${question}` }
+    return { success: true, value: `Asked user: ${question}` }
   },
 }

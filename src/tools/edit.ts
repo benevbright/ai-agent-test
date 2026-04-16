@@ -2,6 +2,7 @@ import { z } from "zod"
 import fs from "fs"
 import path from "path"
 import chalk from "chalk"
+import type { ToolDefinition } from "./types.js"
 
 export interface ReplaceEdit {
   oldText: string
@@ -141,7 +142,7 @@ function applyLineEdit(
   }
 }
 
-export const editTool = {
+export const editTool: ToolDefinition<{ path: string; edits: Edit }> = {
   description:
     "Make targeted edits to existing files. Use text replacement or line ranges.",
   inputSchema: z.object({
@@ -163,7 +164,7 @@ export const editTool = {
       if (!fs.existsSync(fullPath)) {
         return {
           success: false,
-          error: `File not found: ${fullPath}`,
+          value: `File not found: ${fullPath}`,
         }
       }
 
@@ -184,7 +185,7 @@ export const editTool = {
           if (hasOverlappingOriginalRange(edit, appliedLineEdits)) {
             return {
               success: false,
-              error:
+              value:
                 "Overlapping line-based edits are not supported in the same request. Merge them into a single line-range edit.",
             }
           }
@@ -198,7 +199,7 @@ export const editTool = {
           if (!lineEditResult.success) {
             return {
               success: false,
-              error: lineEditResult.error,
+              value: lineEditResult.error,
             }
           }
           newContent = lineEditResult.content
@@ -238,12 +239,7 @@ export const editTool = {
 
       return {
         success: true,
-        output: `File "${fullPath}" edited successfully.\nEdits applied: ${editsApplied} out of ${edits.length}`,
-        metadata: {
-          path: fullPath,
-          editsCount: editsApplied,
-          totalEdits: edits.length,
-        },
+        value: `File "${fullPath}" edited successfully.\nEdits applied: ${editsApplied} out of ${edits.length}`,
       }
     } catch (error: any) {
       console.error(
@@ -251,7 +247,7 @@ export const editTool = {
       )
       return {
         success: false,
-        error: error.message,
+        value: error.message,
       }
     }
   },

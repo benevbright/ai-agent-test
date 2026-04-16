@@ -9,8 +9,8 @@ describe("compilationCheckTool", () => {
     })
 
     expect(result.success).toBe(true)
-    expect(result.output).toContain("Compilation check passed successfully.")
-    expect(result.output).toContain("0 errors, 0 warnings")
+    expect(result.value).toContain("Compilation check passed successfully.")
+    expect(result.value).toContain("0 errors, 0 warnings")
   })
 
   it("preserves stdout and stderr when a command fails", async () => {
@@ -20,8 +20,8 @@ describe("compilationCheckTool", () => {
     })
 
     expect(result.success).toBe(false)
-    expect(result.error).toBe("Compilation check failed with code 4")
-    expect(result.output).toContain("stdout-message")
-    expect(result.stderr).toContain("stderr-message")
+    expect(result.value).toContain("Compilation check failed with code 4")
+    expect(result.value).toContain("stdout-message")
+    expect(result.value).toContain("stderr-message")
   })
 })

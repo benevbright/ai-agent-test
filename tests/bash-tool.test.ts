@@ -9,9 +9,8 @@ describe("bashTool", () => {
     })
 
     expect(result.success).toBe(false)
-    expect(result.error).toBe("Command failed with code 7")
-    expect(result.output).toContain("stdout-only failure")
-    expect(result.stderr).toBeUndefined()
+    expect(result.value).toContain("Command failed with code 7")
+    expect(result.value).toContain("stdout-only failure")
   })
 
   it("returns a timeout error after terminating the process", async () => {
@@ -21,7 +20,7 @@ describe("bashTool", () => {
     })
 
     expect(result.success).toBe(false)
-    expect(result.error).toBe("Command timed out after 0.05 seconds")
-    expect(result.stderr).toContain("Process was terminated due to timeout")
+    expect(result.value).toContain("Command timed out after 0.05 seconds")
+    expect(result.value).toContain("Process was terminated due to timeout")
   })
 })

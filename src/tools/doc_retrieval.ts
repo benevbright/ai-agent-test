@@ -5,6 +5,7 @@ import {
   tryFetchExtractedPageContent,
   type WebSearchResult,
 } from "./web_retrieval.js"
+import type { ToolDefinition } from "./types.js"
 
 interface RankedSearchResult extends WebSearchResult {
   score: number
@@ -256,7 +257,13 @@ async function resolveCandidateUrls({
   }
 }
 
-export const docRetrieval = {
+export const docRetrieval: ToolDefinition<{
+  query: string
+  urls?: string[]
+  preferredDomains?: string[]
+  maxResults?: number
+  maxReadBodyLength?: number
+}> = {
   description:
     "Search and retrieve official documentation pages. Prefers authoritative sources.",
   inputSchema: z.object({
@@ -311,7 +318,7 @@ export const docRetrieval = {
       )
     }
 
-    const { rankedResults, searchQueries } = await resolveCandidateUrls({
+    const { rankedResults } = await resolveCandidateUrls({
       query,
       explicitUrls,
       preferredDomains: resolvedDomains,
@@ -321,7 +328,7 @@ export const docRetrieval = {
     if (rankedResults.length === 0) {
       return {
         success: false,
-        error: "No documentation results found",
+        value: "No documentation results found",
       }
     }
 
@@ -362,7 +369,7 @@ export const docRetrieval = {
     if (successfulDocuments.length === 0) {
       return {
         success: false,
-        error: "Unable to fetch any documentation pages",
+        value: "Unable to fetch any documentation pages",
       }
     }
 
@@ -392,14 +399,7 @@ export const docRetrieval = {
 
     return {
       success: true,
-      output: `${output}\n\n${truncationNotice}`,
-      metadata: {
-        maxResults,
-        maxReadBodyLength,
-        preferredDomains: resolvedDomains,
-        searchQueries,
-        resultCount: successfulDocuments.length,
-      },
+      value: `${output}\n\n${truncationNotice}`,
     }
   },
 }
