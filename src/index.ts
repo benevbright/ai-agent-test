@@ -21,6 +21,7 @@ import {
   checkNpmUpdate,
   formatPath,
   loadSession,
+  sessionDir,
 } from "./utils/system.js"
 
 // Get the directory of this module (works with ES modules)
@@ -178,7 +179,9 @@ if (sessionFile) {
       content: `[The system resumed previous session from file ${sessionFile}. I better re-engage the chat with a short greeting to user to continue the conversation.]`,
     })
     console.log(
-      chalk.green(`Loaded ${messages.length} messages from previous session.`),
+      chalk.green(
+        `Loaded ${messages.length} messages from ${formatPath(path.join(sessionDir, sessionFile))} session file.`,
+      ),
     )
   } else {
     console.error(chalk.red("Failed to load session."))

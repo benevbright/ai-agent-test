@@ -73,11 +73,15 @@ const args = yargs(hideBin(argv))
     "List last 20 sessions",
     () => {},
     () => {
+      const sessionsDir = join(homedir(), ".ai", "sessions")
       const sessions = listSessions(20)
       if (sessions.length === 0) {
-        console.log("No sessions found.")
+        console.log(
+          `No sessions found in ${sessionsDir.replace(homedir(), "~")}.`,
+        )
       } else {
-        console.log(`Last ${sessions.length} sessions:`)
+        const displayPath = sessionsDir.replace(homedir(), "~")
+        console.log(`Last ${sessions.length} sessions (${displayPath}):`)
         sessions.forEach((session, index) => {
           let line = `${index}. ${session.timestamp}`
           if (session.summary) {
@@ -126,8 +130,6 @@ if (args.session !== undefined) {
 
   process.env.AI_SESSION_INDEX = sessionIndex.toString()
   process.env.AI_SESSION_FILE = sessionFile
-
-  console.log(`Loaded session ${sessionIndex} from ${sessionFile}`)
 }
 
 // Handle additional system prompt from --system option

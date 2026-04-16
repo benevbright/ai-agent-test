@@ -17,7 +17,7 @@ export function formatPath(p: string): string {
 }
 
 // Session file setup
-const sessionDir = path.join(homedir(), ".ai", "sessions")
+export const sessionDir = path.join(homedir(), ".ai", "sessions")
 if (!fs.existsSync(sessionDir)) {
   fs.mkdirSync(sessionDir, { recursive: true })
 }
