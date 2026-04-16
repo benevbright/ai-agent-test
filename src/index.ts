@@ -356,18 +356,6 @@ async function runLoop(prompt: string) {
     if (toolCallsCollected.length === 0) {
       break
     }
-    const hasCompletedProgress = toolCallsCollected.some((toolCall) => {
-      if (toolCall.toolName !== toolNames.recordProgress) {
-        return false
-      }
-
-      const result = toolResultsByCallId.get(toolCall.toolCallId)
-      return result?.success === true && result.value === "100"
-    })
-    if (hasCompletedProgress) {
-      console.log("\nTask completed with 100% progress!")
-      break
-    }
     const followUpRes = toolCallsCollected.find(
       (toolCall) =>
         toolCall.toolName === toolNames.askUserFollowup &&
