@@ -141,6 +141,7 @@ const criticalWorkflowRulesChatMode = `
 `
 const criticalWorkflowRulesSinglePromptMode = `
 - Since you are running in single prompt mode, you won't have the chance to ask follow-up questions. If you are unsure about something, make a reasonable assumption and clearly state that assumption in your response.
+- Don't finish your response with "let me know if you have any other questions" or similar, since there won't be an opportunity for follow-up questions.
 `
 
 systemPrompt = systemPrompt
