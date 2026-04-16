@@ -293,7 +293,7 @@ async function runLoop(prompt: string) {
           ),
         )
         const message = Object.values(toolNames).includes(toolCall.toolName)
-          ? `missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}).`
+          ? `missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}). Likely input schema validation was failed because the object/array was passed as a string.`
           : `the tool call ${toolCall.toolCallId} used an unknown tool (${toolCall.toolName}).`
         const normalizedResult: ToolResult = {
           success: false,
