@@ -247,11 +247,22 @@ async function runLoop(prompt: string) {
       }
 
       if (part.type === "text-delta") {
-        if (!fullText) {
-          process.stdout.write(chalk.cyan("\nAssistant: "))
+        let invalidFirstText = false
+        if (
+          !fullText &&
+          (part.text === "\n" ||
+            part.text === "\n\n" ||
+            part.text.trim() === "")
+        ) {
+          invalidFirstText = true
         }
-        process.stdout.write(part.text)
-        fullText += part.text
+        if (!invalidFirstText) {
+          if (!fullText) {
+            process.stdout.write(chalk.cyan("\nAssistant: "))
+          }
+          process.stdout.write(part.text)
+          fullText += part.text
+        }
       } else if (part.type === "tool-call") {
         toolCallsCollected.push({
           type: "tool-call",
@@ -336,7 +347,7 @@ async function runLoop(prompt: string) {
       })
     }
 
-    const responseEmpty = fullText.replaceAll("\n", "").length === 0
+    const responseEmpty = fullText.replaceAll("\n", "").trim().length === 0
 
     if (!responseEmpty) {
       // Display token usage with percentage of context window
