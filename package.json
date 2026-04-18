@@ -1,6 +1,6 @@
 {
   "name": "ai-agent-test",
-  "version": "0.13.4",
+  "version": "0.13.5",
   "main": "dist/index.js",
   "bin": {
     "ai": "./bin/ai"
