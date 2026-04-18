@@ -29,7 +29,7 @@ import {
   getReasoningDeltaFromRawChunk,
 } from "./utils/ai.js"
 
-const REASONING_LOOP_THRESHOLD = 1000
+const REASONING_LOOP_THRESHOLD = 10000
 
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url)
@@ -200,6 +200,8 @@ async function runLoop(prompt: string) {
 
   setupEscListener()
 
+  let reasoningText = ""
+
   while (true) {
     const res = await streamText({
       model,
@@ -210,8 +212,6 @@ async function runLoop(prompt: string) {
     })
 
     let fullText = ""
-    let reasoningHeaderPrinted = false
-    let reasoningDeltaCount = 0
     const toolCallsCollected: any[] = []
     const toolResultContent: ToolContent = []
     const toolResultsByCallId = new Map<string, ToolResult>()
@@ -226,8 +226,13 @@ async function runLoop(prompt: string) {
       }
 
       if (part.type === "reasoning-delta") {
-        reasoningDeltaCount++
-        if (reasoningDeltaCount > REASONING_LOOP_THRESHOLD) {
+        if (!reasoningText) {
+          process.stdout.write(chalk.gray("\nThinking: "))
+        }
+
+        reasoningText += part.text
+
+        if (reasoningText.length > REASONING_LOOP_THRESHOLD) {
           console.log(
             chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
           )
@@ -239,16 +244,17 @@ async function runLoop(prompt: string) {
           break
         }
 
-        if (!reasoningHeaderPrinted) {
-          process.stdout.write(chalk.gray("\nThinking: "))
-          reasoningHeaderPrinted = true
-        }
         process.stdout.write(chalk.gray(part.text))
       } else if (part.type === "raw") {
         const reasoningDelta = getReasoningDeltaFromRawChunk(part.rawValue)
         if (reasoningDelta) {
-          reasoningDeltaCount++
-          if (reasoningDeltaCount > REASONING_LOOP_THRESHOLD) {
+          if (!reasoningText) {
+            process.stdout.write(chalk.gray("\nThinking: "))
+          }
+
+          reasoningText += reasoningDelta
+
+          if (reasoningText.length > REASONING_LOOP_THRESHOLD) {
             console.log(
               chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
             )
@@ -260,13 +266,12 @@ async function runLoop(prompt: string) {
             break
           }
 
-          if (!reasoningHeaderPrinted) {
-            process.stdout.write(chalk.gray("\nThinking: "))
-            reasoningHeaderPrinted = true
-          }
           process.stdout.write(chalk.gray(reasoningDelta))
         }
       } else if (part.type === "text-delta") {
+        if (!fullText) {
+          reasoningText = ""
+        }
         let invalidFirstText = false
         if (
           !fullText &&
@@ -284,6 +289,7 @@ async function runLoop(prompt: string) {
           fullText += part.text
         }
       } else if (part.type === "tool-call") {
+        reasoningText = ""
         toolCallsCollected.push({
           type: "tool-call",
           toolCallId: part.toolCallId,
