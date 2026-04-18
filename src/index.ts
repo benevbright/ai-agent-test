@@ -29,7 +29,7 @@ import {
   getReasoningDeltaFromRawChunk,
 } from "./utils/ai.js"
 
-const REASONING_LOOP_THRESHOLD = 10000
+const REASONING_LOOP_THRESHOLD = 5000
 
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url)
@@ -200,6 +200,8 @@ async function runLoop(prompt: string) {
 
   setupEscListener()
 
+  // declared outside of while loop because I observe, reasoningText is accumulating across multiple iterations of the loop.
+  // I need to collect them together to see if it exceeds the threshold, which is the signal of reasoning loop.
   let reasoningText = ""
 
   while (true) {
@@ -241,6 +243,7 @@ async function runLoop(prompt: string) {
             content:
               "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
           })
+          reasoningText = ""
           break
         }
 
@@ -263,6 +266,7 @@ async function runLoop(prompt: string) {
               content:
                 "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
             })
+            reasoningText = ""
             break
           }
 
