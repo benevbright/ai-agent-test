@@ -204,7 +204,7 @@ async function runLoop(prompt: string) {
       messages,
       tools: filteredTools,
       system: systemPrompt,
-      // includeRawChunks: true,
+      includeRawChunks: true,
     })
 
     let fullText = ""
