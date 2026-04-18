@@ -29,6 +29,8 @@ import {
   getReasoningDeltaFromRawChunk,
 } from "./utils/ai.js"
 
+const REASONING_LOOP_THRESHOLD = 1000
+
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -209,6 +211,7 @@ async function runLoop(prompt: string) {
 
     let fullText = ""
     let reasoningHeaderPrinted = false
+    let reasoningDeltaCount = 0
     const toolCallsCollected: any[] = []
     const toolResultContent: ToolContent = []
     const toolResultsByCallId = new Map<string, ToolResult>()
@@ -223,6 +226,19 @@ async function runLoop(prompt: string) {
       }
 
       if (part.type === "reasoning-delta") {
+        reasoningDeltaCount++
+        if (reasoningDeltaCount > REASONING_LOOP_THRESHOLD) {
+          console.log(
+            chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
+          )
+          pushMessage({
+            role: "user",
+            content:
+              "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
+          })
+          break
+        }
+
         if (!reasoningHeaderPrinted) {
           process.stdout.write(chalk.gray("\nThinking: "))
           reasoningHeaderPrinted = true
@@ -231,6 +247,19 @@ async function runLoop(prompt: string) {
       } else if (part.type === "raw") {
         const reasoningDelta = getReasoningDeltaFromRawChunk(part.rawValue)
         if (reasoningDelta) {
+          reasoningDeltaCount++
+          if (reasoningDeltaCount > REASONING_LOOP_THRESHOLD) {
+            console.log(
+              chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
+            )
+            pushMessage({
+              role: "user",
+              content:
+                "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
+            })
+            break
+          }
+
           if (!reasoningHeaderPrinted) {
             process.stdout.write(chalk.gray("\nThinking: "))
             reasoningHeaderPrinted = true
