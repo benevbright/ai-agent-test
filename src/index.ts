@@ -23,6 +23,11 @@ import {
   loadSession,
   sessionDir,
 } from "./utils/system.js"
+import {
+  contextLength,
+  fetchContextLength,
+  getReasoningDeltaFromRawChunk,
+} from "./utils/ai.js"
 
 // Get the directory of this module (works with ES modules)
 const __filename = fileURLToPath(import.meta.url)
@@ -30,7 +35,6 @@ const __dirname = dirname(__filename)
 
 // Load environment variables from .env file (handled by CLI: npm run dev)
 
-// Helper function to push to messages array and write to log
 function pushMessage(message: ModelMessage) {
   messages.push(message)
   appendMessageToLog(message)
@@ -43,7 +47,6 @@ const baseUrl = process.env.AI_API_BASE_URL || ""
 const apiKey = process.env.AI_API_KEY || ""
 
 let model: LanguageModelV3
-let contextLength: number = 0 // 0 means not yet fetched
 
 if (modelProvider === "google") {
   model = createGoogleGenerativeAI({
@@ -55,35 +58,6 @@ if (modelProvider === "google") {
     baseURL: baseUrl,
     apiKey: apiKey,
   }).chat(modelName)
-}
-
-// Fetch context length from models API if available (only once)
-async function fetchContextLength(): Promise<number> {
-  // Only fetch if we still have the default value
-  if (contextLength !== 0) {
-    return contextLength
-  }
-  try {
-    const response = await fetch(`${baseUrl}/models`, {
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-      },
-    })
-    const data = await response.json()
-
-    // Try to find the model in different possible response formats
-    const modelsArray = data.data || data
-    const modelData = modelsArray.find((m: any) => m.id === modelName)
-
-    if (modelData) {
-      // Check for context_length in various locations
-      contextLength = modelData.context_length || 0
-      return contextLength
-    }
-  } catch {
-    // Fail silently - use default fallback
-  }
-  return contextLength // return 0 if not found
 }
 
 const systemPromptPath = path.join(__dirname, "../SYSTEM.md")
@@ -230,9 +204,11 @@ async function runLoop(prompt: string) {
       messages,
       tools: filteredTools,
       system: systemPrompt,
+      includeRawChunks: true,
     })
 
     let fullText = ""
+    let reasoningHeaderPrinted = false
     const toolCallsCollected: any[] = []
     const toolResultContent: ToolContent = []
     const toolResultsByCallId = new Map<string, ToolResult>()
@@ -246,7 +222,22 @@ async function runLoop(prompt: string) {
         return
       }
 
-      if (part.type === "text-delta") {
+      if (part.type === "reasoning-delta") {
+        if (!reasoningHeaderPrinted) {
+          process.stdout.write(chalk.gray("\nThinking: "))
+          reasoningHeaderPrinted = true
+        }
+        process.stdout.write(chalk.gray(part.text))
+      } else if (part.type === "raw") {
+        const reasoningDelta = getReasoningDeltaFromRawChunk(part.rawValue)
+        if (reasoningDelta) {
+          if (!reasoningHeaderPrinted) {
+            process.stdout.write(chalk.gray("\nThinking: "))
+            reasoningHeaderPrinted = true
+          }
+          process.stdout.write(chalk.gray(reasoningDelta))
+        }
+      } else if (part.type === "text-delta") {
         let invalidFirstText = false
         if (
           !fullText &&
@@ -391,7 +382,11 @@ async function runLoop(prompt: string) {
 
 async function main() {
   // Fetch context length for percentage calculation
-  await fetchContextLength()
+  await fetchContextLength({
+    baseUrl,
+    apiKey,
+    modelName,
+  })
 
   if (cliPrompt) {
     // Single prompt mode: run once and exit
