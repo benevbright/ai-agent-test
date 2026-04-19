@@ -29,6 +29,7 @@ import {
   getReasoningDeltaFromRawChunk,
 } from "./utils/ai.js"
 
+const REASONING_LOOP_WARNING_THRESHOLD = 2500
 const REASONING_LOOP_THRESHOLD = 5000
 
 // Get the directory of this module (works with ES modules)
@@ -203,6 +204,38 @@ async function runLoop(prompt: string) {
   // declared outside of while loop because I observe, reasoningText is accumulating across multiple iterations of the loop.
   // I need to collect them together to see if it exceeds the threshold, which is the signal of reasoning loop.
   let reasoningText = ""
+  let reasoningWarningShown = false
+  const resetReasoningState = () => {
+    reasoningText = ""
+    reasoningWarningShown = false
+  }
+  const maybePrintReasoningLoopWarning = () => {
+    if (
+      !reasoningWarningShown &&
+      reasoningText.length > REASONING_LOOP_WARNING_THRESHOLD
+    ) {
+      console.log(
+        chalk.yellow(
+          "\n\n[Reasoning is taking longer than expected. Will move on if it continues...]",
+        ),
+      )
+      reasoningWarningShown = true
+    }
+  }
+  const maybeSkipReasoningLoop = () => {
+    if (reasoningText.length > REASONING_LOOP_THRESHOLD) {
+      console.log(
+        chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
+      )
+      pushMessage({
+        role: "user",
+        content:
+          "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
+      })
+      resetReasoningState()
+      return true
+    }
+  }
 
   while (true) {
     const res = await streamText({
@@ -233,17 +266,8 @@ async function runLoop(prompt: string) {
         }
 
         reasoningText += part.text
-
-        if (reasoningText.length > REASONING_LOOP_THRESHOLD) {
-          console.log(
-            chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
-          )
-          pushMessage({
-            role: "user",
-            content:
-              "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
-          })
-          reasoningText = ""
+        maybePrintReasoningLoopWarning()
+        if (maybeSkipReasoningLoop()) {
           break
         }
 
@@ -256,17 +280,8 @@ async function runLoop(prompt: string) {
           }
 
           reasoningText += reasoningDelta
-
-          if (reasoningText.length > REASONING_LOOP_THRESHOLD) {
-            console.log(
-              chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
-            )
-            pushMessage({
-              role: "user",
-              content:
-                "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
-            })
-            reasoningText = ""
+          maybePrintReasoningLoopWarning()
+          if (maybeSkipReasoningLoop()) {
             break
           }
 
@@ -274,7 +289,7 @@ async function runLoop(prompt: string) {
         }
       } else if (part.type === "text-delta") {
         if (!fullText) {
-          reasoningText = ""
+          resetReasoningState()
         }
         let invalidFirstText = false
         if (
@@ -293,7 +308,7 @@ async function runLoop(prompt: string) {
           fullText += part.text
         }
       } else if (part.type === "tool-call") {
-        reasoningText = ""
+        resetReasoningState()
         toolCallsCollected.push({
           type: "tool-call",
           toolCallId: part.toolCallId,
