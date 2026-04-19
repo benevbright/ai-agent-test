@@ -264,28 +264,24 @@ async function runLoop(prompt: string) {
         if (!reasoningText) {
           process.stdout.write(chalk.gray("\nThinking: "))
         }
-
         reasoningText += part.text
+        process.stdout.write(chalk.gray(part.text))
         maybePrintReasoningLoopWarning()
         if (maybeSkipReasoningLoop()) {
           break
         }
-
-        process.stdout.write(chalk.gray(part.text))
       } else if (part.type === "raw") {
         const reasoningDelta = getReasoningDeltaFromRawChunk(part.rawValue)
         if (reasoningDelta) {
           if (!reasoningText) {
             process.stdout.write(chalk.gray("\nThinking: "))
           }
-
           reasoningText += reasoningDelta
+          process.stdout.write(chalk.gray(reasoningDelta))
           maybePrintReasoningLoopWarning()
           if (maybeSkipReasoningLoop()) {
             break
           }
-
-          process.stdout.write(chalk.gray(reasoningDelta))
         }
       } else if (part.type === "text-delta") {
         if (!fullText) {
