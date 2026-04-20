@@ -209,16 +209,16 @@ async function runLoop(prompt: string) {
 
   // declared outside of while loop because I observe, reasoningText is accumulating across multiple iterations of the loop.
   // I need to collect them together to see if it exceeds the threshold, which is the signal of reasoning loop.
-  let reasoningTextSaved = ""
+  let reasoningTextDebug = ""
   let reasoningWarningShown = false
   const resetReasoningWarningState = () => {
-    reasoningTextSaved = ""
+    reasoningTextDebug = ""
     reasoningWarningShown = false
   }
   const maybePrintReasoningLoopWarning = () => {
     if (
       !reasoningWarningShown &&
-      reasoningTextSaved.length > REASONING_LOOP_WARNING_THRESHOLD
+      reasoningTextDebug.length > REASONING_LOOP_WARNING_THRESHOLD
     ) {
       console.log(
         chalk.yellow(
@@ -229,7 +229,7 @@ async function runLoop(prompt: string) {
     }
   }
   const maybeSkipReasoningLoop = () => {
-    if (reasoningTextSaved.length > REASONING_LOOP_THRESHOLD) {
+    if (reasoningTextDebug.length > REASONING_LOOP_THRESHOLD) {
       console.log(
         chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
       )
@@ -276,7 +276,7 @@ async function runLoop(prompt: string) {
           process.stdout.write(chalk.gray("\nThinking: "))
         }
         reasoningText += part.text
-        reasoningTextSaved += part.text
+        reasoningTextDebug += part.text
         process.stdout.write(chalk.gray(part.text))
         maybePrintReasoningLoopWarning()
         if (maybeSkipReasoningLoop()) {
@@ -290,7 +290,7 @@ async function runLoop(prompt: string) {
             process.stdout.write(chalk.gray("\nThinking: "))
           }
           reasoningText += reasoningDelta
-          reasoningTextSaved += reasoningDelta
+          reasoningTextDebug += reasoningDelta
           process.stdout.write(chalk.gray(reasoningDelta))
           maybePrintReasoningLoopWarning()
           if (maybeSkipReasoningLoop()) {
@@ -409,6 +409,7 @@ async function runLoop(prompt: string) {
     const responseEmpty = fullText.replaceAll("\n", "").trim().length === 0
 
     if (!responseEmpty || toolCallsCollected.length > 0) {
+      // response or tool calls means the assistant is not stuck in pure reasoning.
       resetReasoningWarningState()
     }
 
