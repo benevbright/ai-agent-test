@@ -17,3 +17,5 @@
 3. [x] edit tool (or read tool) doesn't work well when there is backslash in the content that they need to handle. for example the codebase had a line like `systemPrompt += "\n\n---\n\nCLI System Prompt\n\" + cliSystemPrompt` and couldn't resolve it because there was a backslash before closing quote.
 4. [x] on prompt mode, if the prompt stoped by `ask_user_followup` tool, fill arbitrary message so loop can continue.
 5. [ ] "Preserve reasoning" is not working because reasoning blocks are dropped from processing messages for next turn by "node_modules/@ai-sdk/openai/src/chat/convert-to-openai-chat-messages.ts". It seems it's because we're using Chat API, not response API. Also need to consider using "@ai-sdk/open-responses" lib. Not easy but curious how much it changes the results. (could be not much)
+   - https://github.com/lmstudio-ai/lmstudio-bug-tracker/issues/1559
+   - https://github.com/badlogic/pi-mono/blob/e3f6912d49d14b6e6ffe96bb053644922004ecf3/packages/ai/src/providers/openai-completions.ts#L425
