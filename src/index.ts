@@ -383,7 +383,8 @@ async function runLoop(prompt: string) {
 
     const assistantContent: AssistantContent[] = []
     if (reasoningText) {
-      assistantContent.push({ type: "reasoning" as const, text: reasoningText })
+      // NOTE: this is not affecting the logic as we're using Chat API. See TODO's bug no.5.
+      // assistantContent.push({ type: "reasoning" as const, text: reasoningText })
     }
     if (fullText) {
       assistantContent.push({ type: "text" as const, text: fullText })
