@@ -1,6 +1,7 @@
 import {
   streamText,
   type ModelMessage,
+  type ToolCallPart,
   type ToolContent,
   type ToolSet,
 } from "ai"
@@ -145,6 +146,11 @@ if (cliPrompt) {
 
 let interruptRequested = false
 
+type AssistantContent =
+  | { type: "reasoning"; text: string }
+  | { type: "text"; text: string }
+  | ToolCallPart
+
 // Check for loaded messages from a previous session via env var
 const messages: ModelMessage[] = []
 const sessionFile = process.env.AI_SESSION_FILE
@@ -203,16 +209,16 @@ async function runLoop(prompt: string) {
 
   // declared outside of while loop because I observe, reasoningText is accumulating across multiple iterations of the loop.
   // I need to collect them together to see if it exceeds the threshold, which is the signal of reasoning loop.
-  let reasoningText = ""
+  let reasoningTextSaved = ""
   let reasoningWarningShown = false
-  const resetReasoningState = () => {
-    reasoningText = ""
+  const resetReasoningWarningState = () => {
+    reasoningTextSaved = ""
     reasoningWarningShown = false
   }
   const maybePrintReasoningLoopWarning = () => {
     if (
       !reasoningWarningShown &&
-      reasoningText.length > REASONING_LOOP_WARNING_THRESHOLD
+      reasoningTextSaved.length > REASONING_LOOP_WARNING_THRESHOLD
     ) {
       console.log(
         chalk.yellow(
@@ -223,7 +229,7 @@ async function runLoop(prompt: string) {
     }
   }
   const maybeSkipReasoningLoop = () => {
-    if (reasoningText.length > REASONING_LOOP_THRESHOLD) {
+    if (reasoningTextSaved.length > REASONING_LOOP_THRESHOLD) {
       console.log(
         chalk.yellow("\n\n[Reasoning loop detected, moving forward...]"),
       )
@@ -232,7 +238,7 @@ async function runLoop(prompt: string) {
         content:
           "Skip the detailed thinking. Just proceed with the task directly without overthinking.",
       })
-      resetReasoningState()
+      resetReasoningWarningState()
       return true
     }
   }
@@ -246,14 +252,18 @@ async function runLoop(prompt: string) {
       includeRawChunks: true,
     })
 
+    let reasoningText = ""
     let fullText = ""
-    const toolCallsCollected: any[] = []
+    const toolCallsCollected: ToolCallPart[] = []
     const toolResultContent: ToolContent = []
     const toolResultsByCallId = new Map<string, ToolResult>()
 
     const formatToolResultMessage = (result: ToolResult) =>
       `Status: ${result.success ? "success" : "failure"}\n${result.value}`
 
+    const processedPartTypes = new Set<
+      "reasoning-delta" | "text-delta" | "tool-call" | "tool-result" | "raw"
+    >()
     for await (const part of res.fullStream) {
       if (interruptRequested) {
         cleanupEscListener()
@@ -261,22 +271,26 @@ async function runLoop(prompt: string) {
       }
 
       if (part.type === "reasoning-delta") {
+        processedPartTypes.add(part.type)
         if (!reasoningText) {
           process.stdout.write(chalk.gray("\nThinking: "))
         }
         reasoningText += part.text
+        reasoningTextSaved += part.text
         process.stdout.write(chalk.gray(part.text))
         maybePrintReasoningLoopWarning()
         if (maybeSkipReasoningLoop()) {
           break
         }
       } else if (part.type === "raw") {
+        processedPartTypes.add(part.type)
         const reasoningDelta = getReasoningDeltaFromRawChunk(part.rawValue)
         if (reasoningDelta) {
           if (!reasoningText) {
             process.stdout.write(chalk.gray("\nThinking: "))
           }
           reasoningText += reasoningDelta
+          reasoningTextSaved += reasoningDelta
           process.stdout.write(chalk.gray(reasoningDelta))
           maybePrintReasoningLoopWarning()
           if (maybeSkipReasoningLoop()) {
@@ -284,9 +298,7 @@ async function runLoop(prompt: string) {
           }
         }
       } else if (part.type === "text-delta") {
-        if (!fullText) {
-          resetReasoningState()
-        }
+        processedPartTypes.add(part.type)
         let invalidFirstText = false
         if (
           !fullText &&
@@ -304,7 +316,7 @@ async function runLoop(prompt: string) {
           fullText += part.text
         }
       } else if (part.type === "tool-call") {
-        resetReasoningState()
+        processedPartTypes.add(part.type)
         toolCallsCollected.push({
           type: "tool-call",
           toolCallId: part.toolCallId,
@@ -312,6 +324,7 @@ async function runLoop(prompt: string) {
           input: part.input,
         })
       } else if (part.type === "tool-result") {
+        processedPartTypes.add(part.type)
         const output = (part as any).output as Partial<ToolResult> | undefined
         const normalizedResult: ToolResult = {
           success: output?.success === true,
@@ -344,7 +357,9 @@ async function runLoop(prompt: string) {
             `Warning: Missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName})`,
           ),
         )
-        const message = Object.values(toolNames).includes(toolCall.toolName)
+        const message = Object.values(toolNames).includes(
+          toolCall.toolName as (typeof toolNames)[keyof typeof toolNames],
+        )
           ? `missing tool result for call ${toolCall.toolCallId} (${toolCall.toolName}). Likely input schema validation was failed because the object/array was passed as a string.`
           : `the tool call ${toolCall.toolCallId} used an unknown tool (${toolCall.toolName}).`
         const normalizedResult: ToolResult = {
@@ -366,9 +381,12 @@ async function runLoop(prompt: string) {
 
     const usage = await res.usage
 
-    const assistantContent: any[] = []
+    const assistantContent: AssistantContent[] = []
+    if (reasoningText) {
+      assistantContent.push({ type: "reasoning" as const, text: reasoningText })
+    }
     if (fullText) {
-      assistantContent.push({ type: "text", text: fullText })
+      assistantContent.push({ type: "text" as const, text: fullText })
     }
     for (const toolCall of toolCallsCollected) {
       assistantContent.push(toolCall)
@@ -389,6 +407,10 @@ async function runLoop(prompt: string) {
     }
 
     const responseEmpty = fullText.replaceAll("\n", "").trim().length === 0
+
+    if (!responseEmpty || toolCallsCollected.length > 0) {
+      resetReasoningWarningState()
+    }
 
     if (!responseEmpty) {
       // Display token usage with percentage of context window
