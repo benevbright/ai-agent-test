@@ -2,7 +2,7 @@ import * as fs from "fs"
 import path from "path"
 import type { ModelMessage } from "ai"
 import { homedir } from "os"
-import { readMultiline } from "@benevbright/read-multiline"
+import { readMultiline } from "@toiroakr/read-multiline"
 
 // Helper function to format path, replacing home directory with ~
 export function formatPath(p: string): string {

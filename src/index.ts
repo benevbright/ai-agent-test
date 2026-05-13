@@ -115,11 +115,11 @@ const fileMeta = `
 
 const criticalWorkflowRulesChatMode = `
 - Always ask before making commits—never commit without explicit user approval. Even if the user told you to "commit" previously, ask if they want to commit/push the specific changes you just made.
-- If you need more information to complete a task, ask the user a follow-up question using the "ask_user_followup" tool. Use this tool to break the loop if progress is stuck or if you are repeating the same solution.
+- If you need more information to complete a task, ask the user a follow-up question using the "${toolNames.askUserFollowup}" tool. Use this tool to break the loop if progress is stuck or if you are repeating the same solution.
 `
 const criticalWorkflowRulesSinglePromptMode = `
-- Since you are running in single prompt mode, you won't have the chance to ask follow-up questions. If you are unsure about something, make a reasonable assumption and clearly state that assumption in your response.
-- Don't finish your response with "let me know if you have any other questions" or similar, since there won't be an opportunity for follow-up questions.
+- Important note: User started the session in single prompt mode (no conversation). If you are unsure about something, make a reasonable assumption and just proceed.
+- Don't finish your response with "let me know if you have any other questions" or asking user's choice, think of this is running on a CI without user interaction.
 `
 
 systemPrompt = systemPrompt
