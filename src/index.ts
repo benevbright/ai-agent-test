@@ -41,7 +41,11 @@ const __dirname = dirname(__filename)
 
 function pushMessage(message: ModelMessage) {
   messages.push(message)
-  appendMessageToLog(message)
+  // Skip session logging in single prompt mode — it creates a session file
+  // that serves no purpose since there's no conversation to resume.
+  if (!cliPrompt) {
+    appendMessageToLog(message)
+  }
 }
 
 // Read configuration from environment variables set by bin/ai
