@@ -88,6 +88,7 @@ export const bashTool: ToolDefinition<{ command: string; timeout?: number }> = {
       childProcess.on(
         "close",
         (code: number | null, signal: NodeJS.Signals | null) => {
+          if (isResolved) return
           markResolved()
           const cappedOutput = capOutput(output, MAX_OUTPUT_LENGTH, "output")
           const cappedStderr = capOutput(
@@ -164,12 +165,21 @@ export const bashTool: ToolDefinition<{ command: string; timeout?: number }> = {
         timeoutId = setTimeout(() => {
           if (!isResolved && !childProcess.killed) {
             didTimeout = true
+            markResolved()
             console.error(
               chalk.red(
                 `[TOOL - bash] ⚠️ Command timed out after ${timeout} seconds`,
               ),
             )
             childProcess.kill("SIGTERM")
+            // Destroy pipes so background child processes don't keep them open,
+            // which would prevent the 'close' event from ever firing.
+            childProcess.stdout.destroy()
+            childProcess.stderr.destroy()
+            resolve({
+              success: false,
+              value: `Command timed out after ${timeout} seconds`,
+            })
           }
         }, timeoutMs)
       }
