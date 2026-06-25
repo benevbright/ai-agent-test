@@ -32,8 +32,9 @@ export const readTool: ToolDefinition<{
       .describe("1-indexed line number to start from."),
     limit: z
       .number()
+      .default(1000)
       .optional()
-      .describe("Max lines to read. Omit for entire file."),
+      .describe("Max lines to read. (Default: 1000)"),
     includeLineNumbers: z
       .boolean()
       .optional()
