@@ -15,6 +15,12 @@ import {
 import yargs from "yargs"
 import { hideBin } from "yargs/helpers"
 
+function formatSize(bytes) {
+  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+}
+
 const packageJson = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf-8"),
 )
@@ -84,8 +90,11 @@ const args = yargs(hideBin(argv))
         console.log(`Last ${sessions.length} sessions (${displayPath}):`)
         sessions.forEach((session, index) => {
           let line = `${index}. ${session.timestamp}`
+          if (session.size !== undefined) {
+            line += ` (${formatSize(session.size)})`
+          }
           if (session.summary) {
-            line += ` - ${session.summary}`
+            line += `: ${session.summary}`
           }
           console.log(line)
         })

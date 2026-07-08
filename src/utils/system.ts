@@ -78,7 +78,7 @@ export function appendMessageToLog(message: ModelMessage) {
 
 export function listSessions(
   limit: number = 20,
-): Array<{ file: string; timestamp: string; summary?: string }> {
+): Array<{ file: string; timestamp: string; summary?: string; size?: number }> {
   if (!fs.existsSync(sessionDir)) {
     return []
   }
@@ -92,54 +92,66 @@ export function listSessions(
     })
     .slice(0, limit)
 
-  const result: Array<{ file: string; timestamp: string; summary?: string }> =
-    files.map((file) => {
-      // Use the full path as timestamp with ~ for home directory (e.g., "~/.ai/sessions/2026-04-11T08:05:000Z-messages.json")
-      const fullPath = path.join(sessionDir, file)
-      const displayPath = fullPath.replace(homedir(), "~")
-      const timestamp = displayPath
+  const result: Array<{
+    file: string
+    timestamp: string
+    summary?: string
+    size?: number
+  }> = files.map((file) => {
+    // Use the full path as timestamp with ~ for home directory (e.g., "~/.ai/sessions/2026-04-11T08:05:000Z-messages.json")
+    const fullPath = path.join(sessionDir, file)
+    const displayPath = fullPath.replace(homedir(), "~")
+    const timestamp = displayPath
 
-      // Try to read and parse the session file for a summary
-      let summary: string | undefined = undefined
-      try {
-        const content = fs.readFileSync(path.join(sessionDir, file), "utf-8")
-        const messages = JSON.parse(content)
+    // Try to read and parse the session file for a summary
+    let summary: string | undefined = undefined
+    try {
+      const content = fs.readFileSync(path.join(sessionDir, file), "utf-8")
+      const messages = JSON.parse(content)
 
-        // Collect all user messages and join them
-        const userMessages: string[] = []
-        messages.forEach((msg: ModelMessage) => {
-          if (msg.role === "user" && typeof msg.content === "string") {
-            userMessages.push(msg.content)
-          }
-        })
-
-        if (userMessages.length > 0) {
-          // Join all user messages with spaces
-          const combined = userMessages.join(" ")
-          // Remove newlines to ensure single-line summary
-          const oneline = combined.replace(/\r?\n/g, " ")
-          // Truncate to 40 characters if needed
-          summary =
-            oneline.length > 40 ? oneline.substring(0, 40) + "..." : oneline
+      // Collect all user messages and join them
+      const userMessages: string[] = []
+      messages.forEach((msg: ModelMessage) => {
+        if (msg.role === "user" && typeof msg.content === "string") {
+          userMessages.push(msg.content)
         }
-      } catch (error) {
-        // If we can't read the file, just show timestamp
-        console.log(
-          `Error reading session file ${file} for summary: ${(error as Error).message}`,
-        )
-      }
+      })
 
-      const session: { file: string; timestamp: string; summary?: string } = {
-        file,
-        timestamp,
+      if (userMessages.length > 0) {
+        // Join all user messages with spaces
+        const combined = userMessages.join(" ")
+        // Remove newlines to ensure single-line summary
+        const oneline = combined.replace(/\r?\n/g, " ")
+        // Truncate to 40 characters if needed
+        summary =
+          oneline.length > 40 ? oneline.substring(0, 40) + "..." : oneline
       }
+    } catch (error) {
+      // If we can't read the file, just show timestamp
+      console.log(
+        `Error reading session file ${file} for summary: ${(error as Error).message}`,
+      )
+    }
 
-      if (summary !== undefined) {
-        session.summary = summary
-      }
+    const session: {
+      file: string
+      timestamp: string
+      summary?: string
+      size?: number
+    } = {
+      file,
+      timestamp,
+    }
 
-      return session
-    })
+    if (summary !== undefined) {
+      session.summary = summary
+    }
+
+    const stat = fs.statSync(fullPath)
+    session.size = stat.size
+
+    return session
+  })
 
   return result
 }
