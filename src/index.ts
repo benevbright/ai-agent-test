@@ -110,11 +110,16 @@ const fileMeta = `
     ? fs.readdirSync(path.join(process.cwd(), "packages")).join(", ")
     : "not found"
 }
-- ls ${currentDirName}: ${
-  fs.existsSync(nestedSameNamePath)
-    ? fs.readdirSync(nestedSameNamePath).join(", ")
-    : "not found"
-}
+- ls ${currentDirName}: ${(() => {
+  try {
+    const stats = fs.statSync(nestedSameNamePath)
+    return stats.isDirectory()
+      ? fs.readdirSync(nestedSameNamePath).join(", ")
+      : "[file, not a directory]"
+  } catch {
+    return "not found"
+  }
+})()}
 `
 
 const criticalWorkflowRulesChatMode = `
